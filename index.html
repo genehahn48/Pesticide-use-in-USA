@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Greenhouse Gas Facilities</title>
+  <title>Estimates of Pesticide use in USA </title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
 
@@ -11,7 +11,7 @@
     body {
       padding: 0;
       margin: 0;
-      background: whitesmoke;
+      background: skyblue;
       font-family: Montserrat, serif;
     }
 
@@ -47,9 +47,10 @@
       height: 600px;
     }
 
-    .state {
-      fill: #468fa6;
-      stroke: whitesmoke;
+    .county {
+      fill: none;
+      stroke: grey;
+      stroke-width: .3;
     }
 
     .facility {
@@ -99,7 +100,7 @@
 
 <body>
   <header>
-    <h1>2016 Greenhouse Gas Emissions </h1>
+    <h1>Estimate Pesticide use 5 year interval</h1>
   </header>
   <div class="container">
     <div id="map"></div>
@@ -109,7 +110,7 @@
       <ul>
         <li>Map authored by Gene Hahn</li>
         <li>data sourced from <a href="https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html">Cartographic Boundary Files</a></li>
-        <li>data sourced from <a href="https://www.epa.gov/ghgreporting/ghg-reporting-program-data-sets">Greenhouse Gas Reporting Program (GHGRP)</a></li>
+        <li>data sourced from <a href="https://water.usgs.gov/nawqa/pnsp/usage/maps/county-level/">USGS Pesticide National Synthesis Project</a></li>
       </ul>
     </div>
     <div class="facility">
@@ -130,8 +131,9 @@
     // JS code here
     // request the JSON text file, then call drawMap function
     // synchronous calls to data files
-    var statesJson = d3.json("data/us-states.json")
-    facilityCSV = d3.csv("data/facility-emissions-2016.csv")
+    var statesJson = d3.json("data/cb_2017_us_state_500k.json")
+    countyJson = d3.json("data/cb_2017_us_county_500k.json")
+    pestCSV = d3.csv("data/five-year-pest.csv")
 
     // define radius generator
     var radius = d3.scaleSqrt().domain([0, 1e6]).range([1, 9])
@@ -140,7 +142,7 @@
     var color = d3.scaleOrdinal(d3.schemeSet1)
 
     // use promise to call all data files, then send data to callback
-    Promise.all([statesJson, facilityCSV]).then(drawMap, error)
+    Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
 
     // function fired if there is an error
     function error(error) {
@@ -153,7 +155,9 @@
       // console.log(data);
       // data is array of our two datasets
       var statesData = data[0],
-        facilityData = data[1]
+        countyData = data[1],
+        pestData = data[2]
+      console.log(countyData);
       // define width and height of our SVG
       var width = 960,
         height = 600
@@ -165,9 +169,10 @@
         .attr("height", height) // same for the height
 
       // get the GeoJSON representation of the TopoJSON data
-      var geojson = topojson.feature(statesData, {
+      var geojson = topojson.feature(countyData, {
+
         type: "GeometryCollection",
-        geometries: statesData.objects.cb_2017_us_state_20m.geometries
+        geometries: countyData.objects.cb_2017_us_county_500k.geometries
       })
       // define a projection using the US Albers USA
       // fit the extent of the GeoJSON data to specified
@@ -182,13 +187,13 @@
         .projection(projection)
 
       // create and append a new SVG g element to the SVG
-      var statesBrdy = svg.append("g")
+      var countyBrdy = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
         .data(geojson.features) // use the GeoJSON data
         .enter() // enter the selection
         .append("path") // append new path elements for each data feature
         .attr("d", path) // give each path a d attribute value
-        .attr("class", "state") // give each path a class of sate
+        .attr("class", "county") // give each path a class of sate
 
       // add points of emissions co2 to map --can stack layers with order in code
       var facilities = svg.append("g")
