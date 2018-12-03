@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MAP672 Lesson 07 Starter Template</title>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+
+  <link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      background: whitesmoke;
+      font-family: Montserrat, serif;
+    }
+
+    header,
+    footer {
+      background: #245574;
+      color: white;
+      padding: 18px 0;
+      box-shadow: 0px 1px 3px #245574;
+    }
+
+    .container {
+      width: 960px;
+      margin: 18px auto;
+    }
+
+    h1 {
+      width: 960px;
+      margin: 0 auto;
+      font-size: 2em;
+    }
+
+    a {
+      color: white;
+    }
+
+    ul li {
+      margin: 0 0 8px 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 600px;
+    }
+
+    .county {
+      fill: #468fa6;
+      stroke: whitesmoke;
+    }
+
+    .hover {
+      stroke: #fe955f;
+      stroke-width: 2;
+    }
+
+    .tooltip {
+      position: absolute;
+      min-width: 60px;
+      min-height: 28px;
+      padding: 6px 12px 3px;
+      color: whitesmoke;
+      background: #245574;
+      border-radius: 2px;
+      pointer-events: none;
+      opacity: 1;
+
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>US Counties</h1>
+  </header>
+  <div class="container">
+    <div id="map"></div>
+  </div>
+  <footer>
+    <div class="container">
+      <ul>
+        <li>Map authored by @rgdonohue</li>
+        <li>data sourced from <a href="https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html">Cartographic Boundary Files</a></li>
+      </ul>
+    </div>
+    <div class="tooltip">
+      <div> </div>
+    </div>
+    <div class="tooltip">
+      <div> </div>
+    </div>
+
+  </footer>
+  <!-- load D3 library -->
+  <script src="https://d3js.org/d3.v5.js"></script>
+  <!-- load TopoJSON -->
+  <script src="https://unpkg.com/topojson@3"></script>
+  <script>
+    // JS code here
+    // request the JSON text file, then call drawMap function
+    d3.json("data/us-counties.json").then(drawMap);
+
+    // accepts the data as a parameter countiesData
+    function drawMap(countiesData) {
+      // log data to console
+      // console.log(countiesData);
+      // define width and height of our SVG
+      var width = 960,
+        height = 600
+
+      // select the map element
+      var svg = d3.select("#map")
+        .append("svg") // append a new SVG element
+        .attr("width", width) // give the SVS element a width attribute and value
+        .attr("height", height) // same for the height
+
+      // get the GeoJSON representation of the TopoJSON data
+      var geojson = topojson.feature(countiesData, {
+        type: "GeometryCollection",
+        geometries: countiesData.objects.counties.geometries
+      })
+      // define a projection using the US Albers USA
+      // fit the extent of the GeoJSON data to specified
+      // width and height
+      // Alberts projection
+      var projection = d3.geoAlbersUsa()
+        .fitSize([width, height], geojson)
+
+      // Equidistant
+      // var projection = d3.geoConicEquidistant()
+      //   // .fitSize([width, height], geojson)
+      //   .center([0, 40]) // center of geography in latitude
+      //   .rotate([97, 0]) // rotate the earth negative degrees in longitude
+      //   .scale(1100) // adjust the scale (i.e., "zoom")
+
+      // define a path generator, which will use
+      // the specified projection
+      var path = d3.geoPath()
+        .projection(projection)
+
+      // create and append a new SVG g element to the SVG
+      // var counties = svg.append("g")
+      //   .selectAll("path") // select all the paths (that don't exist yet)
+      //   .data(geojson.features) // use the GeoJSON data
+      //   .enter() // enter the selection
+      //   .append("path") // append new path elements for each data feature
+      //   .attr("d", path) // give each path a d attribute value
+      //   .attr("class", "county") // give each path a class of county
+      // console.log(geojson)
+      // create and append a new SVG g element to the SVG
+      var counties = svg.append("g")
+        .selectAll("path") // select all the paths (that don't exist yet)
+        .data(geojson.features) // use the GeoJSON data
+        .enter() // enter the selection
+        .append("path") // append new path elements for each data feature
+        .attr("d", path) // give each path a d attribute value
+        .attr("class", "county") // give each path a class of county
+        .on("mouseover", function(d) { // when mousing over an element
+          d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
+          tooltip.style("opacity", 1).html(d.properties.NAME + " County") // make tooltip visible and update info
+        })
+        .on("mouseout", function() { // when mousing out of an element
+          d3.select(this).classed("hover", false) // remove the class
+          tooltip.style("opacity", 0) // hide the element
+        })
+      // Create  div for the tooltip and hide with opacity
+      var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+
+      // select the map element
+      d3.select("#map")
+        .on("mousemove", function(event) { // when mouse moves over it
+          // update the position of the tooltip
+          tooltip.style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 30) + "px");
+        })
+
+    }
+  </script>
+</body>
+
+</html>
