@@ -145,7 +145,9 @@
     pestCSV = d3.csv("data/pest2000.csv")
 
     // define color generator
-    var color = d3.scaleSequential(d3.schemeSet1)
+    var color = d3.scaleQuantize()
+      .domain([1, 10])
+      .range(d3.schemeBlues[9])
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
@@ -164,7 +166,7 @@
       var statesData = data[0],
         countyData = data[1],
         pestData = data[2]
-
+      chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
 
       // console.log(countyData)
       // define width and height of our SVG
@@ -232,12 +234,14 @@
       var pestData = svg.append("g")
         .selectAll("path")
         .data(pestData.sort(function(a, b) {
-          return b.Total - a.Total // place the large ones on the bottom
+
+          // return b.Total - a.Total // place the large ones on the bottom
         }))
 
 
         .attr("class", "pest")
-        .style("fill", function(d) { // give each facility a fill style
+        .style("fill", function(d) { // give each
+          console.log(d)
           return color(d.Industry_Type) // derive the hex color from the value
         })
 
@@ -249,78 +253,33 @@
           d3.select(this).classed("hover", false) // remove the class
           tooltip.style("opacity", 0) // hide the element
         })
-      // // Create  div for the tooltip and hide with opacity
-      // var tooltip = d3.select("body").append("div")
-      //   .attr("class", "tooltip")
-      //
-      // // select the map element
-      // d3.select("#map")
-      //   .on("mousemove", function(event) { // when mouse moves over it
-      //     // update the position of the tooltip
-      //     tooltip.style("left", (d3.event.pageX + 10) + "px")
-      //       .style("top", (d3.event.pageY - 30) + "px");
-      //   })
-      // drawLegend(svg, width, height)
-      //
-      // addFilter(facilityData, facilities)
+      // Create  div for the tooltip and hide with opacity
+      var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+
+      // select the map element
+      d3.select("#map")
+        .on("mousemove", function(event) { // when mouse moves over it
+          // update the position of the tooltip
+          tooltip.style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 30) + "px");
+        })
+
+      addFilter(pestData, chemicals)
     }
 
-    function drawLegend(svg, width, height) {
-
-      // append a new g element
-      var legend = svg.append("g")
-        .attr("dy", "1.3em") // adjust the vertical displacement
-        .attr("class", "legend") // add a class (for CSS)
-        .attr("transform", "translate(" + (width - 50) + "," + (height - 20) + ")")
-        .selectAll("g") // select all new g elements
-        .data([5e6, 2e7]) // apply two numbers (approx median/max)
-        .enter().append("g"); // enter and append the two new g elements
-
-      // place the circles vertically and apply radius
-      legend.append("circle")
-        .attr("cy", function(d) {
-          return -radius(d);
-        })
-        .attr("r", radius);
-
-      // append text to each
-      legend.append("text")
-        .attr("y", function(d) {
-          return -2 * radius(d);
-        })
-        .attr("dy", "1.3em")
-        .text(d3.format(".1s"));
-
-      // append a legend label at bottom
-      legend.append("text")
-        .attr("y", 16)
-        .text("metric tons")
-
-    } // end drawLegend()
-
-    function addFilter(facilityData, facilities) { // START addFilter function
+    function addFilter(pestData, chemicals) { // START addFilter function
       // select the map element
       var dropdown = d3.select('#map')
         .append('select') // append a new select element
         .attr('class', 'filter') // add a class name
         .on('change', onchange) // listen for change
       // array to hold select options
-      var uniqueTypes = ["All facilities"];
+      var uniqueTypes = [""];
 
-      // loop through all features and push unique types to array
-      facilityData.forEach(function(facility) {
-        // if the type is not included in the array, push it to the array
-        if (!uniqueTypes.includes(facility.Industry_Type)) uniqueTypes.push(facility.Industry_Type)
-      })
-
-      // sort types alphabeticaly in array
-      uniqueTypes.sort();
-
-      // ["All facilities", "Chemicals", "Metals", "Minerals", "Other", "Petroleum and Natural Gas Systems", "Power Plants", "Waste"]
-      // console.log(uniqueTypes)
       // select all the options (that don't exist yet)
       dropdown.selectAll('option')
-        .data(uniqueTypes).enter() // attach our array as data
+        .data(chemicals).enter() // attach our array as data
         .append("option") // append a new option element for each data item
         .text(function(d) {
           return d // use the item as text
@@ -334,17 +293,14 @@
         var val = d3.select('select').property('value')
 
         // style the display of the facilities
-        facilities.style("display", function(d) {
-          // if it's our default, show them all with inline
-          if (val === "All facilities") return "inline"
-          // otherwise, if each industry type doesn't match the value
-          if (d.Industry_Type != val) return "none" // don't display it
-        })
+        // chemicals.style("display", function(d) {
+        //   // if it's our default, show them all with inline
+        //   if (val === "2,4-D") return "inline"
+        //   // otherwise, if each industry type doesn't match the value
+        //   if (d != val) return "none" // don't display it
+        // })
       } //END onChange
     } // END addFilter function
-    function addCommas(x) { // START addCommas function
-      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    } // END addCommas function
   </script>
 </body>
 
