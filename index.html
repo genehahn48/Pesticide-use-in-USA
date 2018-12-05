@@ -152,16 +152,27 @@
     // draw map
     function drawMap(data) {
       // log data to console
-      console.log(data);
+      // console.log(data);
       // data is array of our two datasets
       var statesData = data[0],
         countyData = data[1],
         pestData = data[2]
-      console.log(countyData);
+
+      // add zero to front of geoid to make 5 digit
+      pestData.forEach(function(each) {
+        if (each.geoid.length < 5) {
+          each.geoid = "0" + each.geoid
+        }
+      })
+      // console.log(pestData);
+      // console.log(pestData);
       // define width and height of our SVG
       var width = 960,
         height = 600
 
+
+
+      //
       // select the map element
       var svg = d3.select("#map")
         .append("svg") // append a new SVG element
@@ -196,49 +207,49 @@
         .attr("class", "county") // give each path a class of sate
 
       // add points of emissions co2 to map --can stack layers with order in code
-      var facilities = svg.append("g")
-        .selectAll("circle")
-        .data(facilityData.sort(function(a, b) {
-          return b.Total - a.Total // place the large ones on the bottom
-        }))
-        .enter().append("circle") // enter and append a circle element
-        .attr("cx", function(d) { // define the x position
-          d.position = projection([d.Longitude, d.Latitude]);
-          return d.position[0];
-        })
-        .attr("cy", function(d) {
-          return d.position[1];
-        })
-        .attr("r", function(d) {
-          return radius(+d.Total)
-        })
-        .attr("class", "facility")
-        .style("fill", function(d) { // give each facility a fill style
-          return color(d.Industry_Type) // derive the hex color from the value
-        })
-
-        .on("mouseover", function(d) { // when mousing over an element
-          d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
-          tooltip.style("opacity", 1).html(d.Facility_Name + "<br>" + window.addCommas(d.Total) + " tons") // make tooltip visible and update info
-        })
-        .on("mouseout", function() { // when mousing out of an element
-          d3.select(this).classed("hover", false) // remove the class
-          tooltip.style("opacity", 0) // hide the element
-        })
-      // Create  div for the tooltip and hide with opacity
-      var tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-
-      // select the map element
-      d3.select("#map")
-        .on("mousemove", function(event) { // when mouse moves over it
-          // update the position of the tooltip
-          tooltip.style("left", (d3.event.pageX + 10) + "px")
-            .style("top", (d3.event.pageY - 30) + "px");
-        })
-      drawLegend(svg, width, height)
-
-      addFilter(facilityData, facilities)
+      // var pestData = svg.append("g")
+      //   .selectAll("path")
+      //   .data(pestData.sort(function(a, b) {
+      //     return b.Total - a.Total // place the large ones on the bottom
+      //   }))
+      //   .enter().append("circle") // enter and append a circle element
+      //   .attr("cx", function(d) { // define the x position
+      //     d.position = projection([d.Longitude, d.Latitude]);
+      //     return d.position[0];
+      //   })
+      //   .attr("cy", function(d) {
+      //     return d.position[1];
+      //   })
+      //   .attr("r", function(d) {
+      //     return radius(+d.Total)
+      //   })
+      //   .attr("class", "facility")
+      //   .style("fill", function(d) { // give each facility a fill style
+      //     return color(d.Industry_Type) // derive the hex color from the value
+      //   })
+      //
+      //   .on("mouseover", function(d) { // when mousing over an element
+      //     d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
+      //     tooltip.style("opacity", 1).html(d.Facility_Name + "<br>" + window.addCommas(d.Total) + " tons") // make tooltip visible and update info
+      //   })
+      //   .on("mouseout", function() { // when mousing out of an element
+      //     d3.select(this).classed("hover", false) // remove the class
+      //     tooltip.style("opacity", 0) // hide the element
+      //   })
+      // // Create  div for the tooltip and hide with opacity
+      // var tooltip = d3.select("body").append("div")
+      //   .attr("class", "tooltip")
+      //
+      // // select the map element
+      // d3.select("#map")
+      //   .on("mousemove", function(event) { // when mouse moves over it
+      //     // update the position of the tooltip
+      //     tooltip.style("left", (d3.event.pageX + 10) + "px")
+      //       .style("top", (d3.event.pageY - 30) + "px");
+      //   })
+      // drawLegend(svg, width, height)
+      //
+      // addFilter(facilityData, facilities)
     }
 
     function drawLegend(svg, width, height) {
