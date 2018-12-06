@@ -54,7 +54,7 @@
     }
 
     .county {
-      fill: none;
+      fill: grey;
       stroke: grey;
       stroke-width: .3;
     }
@@ -159,6 +159,7 @@
 
     // draw map
     function drawMap(data) {
+      console.log(data)
       // log data to console
       // console.log(data);
 
@@ -168,6 +169,14 @@
         pestData = data[2]
       chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
 
+      countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
+        pestData.forEach(function(each) {
+          console.log(county)
+          if (county.properties.GEOID == each.fid) {
+            county.properties["pestData"] = each
+          }
+        })
+      })
       // console.log(countyData)
       // define width and height of our SVG
       var width = 960,
@@ -201,6 +210,24 @@
         .projection(projection)
 
       // create and append a new SVG g element to the SVG
+      var countyBrdy = svg.append("g")
+        .selectAll("path") // select all the paths (that don't exist yet)
+        .data(geojsonCounty.features) // use the GeoJSON data
+        .enter() // enter the selection
+        .append("path") // append new path elements for each data feature
+        .attr("d", path) // give each path a d attribute value
+        .attr("class", "county") // give each path a class of sate
+        .on("mouseover", function(d) { // when mousing over an element
+          console.log(d)
+          d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
+          tooltip.style("opacity", 1).html(d.properties.NAME) // make tooltip visible and update info
+        })
+
+        .on("mouseout", function() { // when mousing out of an element
+          d3.select(this).classed("hover", false) // remove the class
+          tooltip.style("opacity", 0) // hide the element
+        })
+
       var stateBrdy = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
         .data(geojsonState.features) // use the GeoJSON data
@@ -214,22 +241,7 @@
       var tooltip = d3.select("path").append("div")
         .attr("class", "tooltip")
 
-      var countyBrdy = svg.append("g")
-        .selectAll("path") // select all the paths (that don't exist yet)
-        .data(geojsonCounty.features) // use the GeoJSON data
-        .enter() // enter the selection
-        .append("path") // append new path elements for each data feature
-        .attr("d", path) // give each path a d attribute value
-        .attr("class", "county") // give each path a class of sate
-        .on("mouseover", function(d) { // when mousing over an element
-          d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
-          tooltip.style("opacity", 1).html(d.properties.NAME) // make tooltip visible and update info
-        })
 
-        .on("mouseout", function() { // when mousing out of an element
-          d3.select(this).classed("hover", false) // remove the class
-          tooltip.style("opacity", 0) // hide the element
-        })
       // add polygon to map pestCSV --can stack layers with order in code
       var pestData = svg.append("g")
         .selectAll("path")
