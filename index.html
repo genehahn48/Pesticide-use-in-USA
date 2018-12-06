@@ -159,7 +159,7 @@
 
     // draw map
     function drawMap(data) {
-      console.log(data)
+      // console.log(data)
       // log data to console
       // console.log(data);
 
@@ -168,7 +168,7 @@
         countyData = data[1],
         pestData = data[2]
       chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
-
+      console.log(pestData)
       countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
         pestData.forEach(function(each) {
           console.log(county)
