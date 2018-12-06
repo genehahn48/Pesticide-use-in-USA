@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Estimates of Pesticide use in USA </title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+
+    <link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+        background: skyblue;
+        font-family: Montserrat, serif;
+      }
+
+      header,
+      footer {
+        background: #245574;
+        color: white;
+        padding: 18px 0;
+        box-shadow: 0px 1px 3px #245574;
+      }
+
+      .container {
+        width: 960px;
+        margin: 18px auto;
+      }
+
+      h1 {
+        width: 960px;
+        margin: 0 auto;
+        font-size: 2em;
+      }
+
+      a {
+        color: white;
+      }
+
+      ul li {
+        margin: 0 0 8px 0;
+      }
+
+      #map {
+        width: 100%;
+        height: 600px;
+      }
+
+      .state {
+        fill: none;
+        stroke: red;
+        stroke-width: .6;
+      }
+
+      .county {
+        fill: grey;
+        stroke: grey;
+        stroke-width: .3;
+      }
+
+      .pest {
+        fill: #cf5635;
+        stroke: white;
+        stroke-width: .3;
+        opacity: .8;
+      }
+
+      .legend circle {
+        fill: none;
+        stroke: #ccc;
+      }
+
+      .legend text {
+        fill: #777;
+        font: 10px sans-serif;
+        text-anchor: middle;
+      }
+
+      .hover {
+        stroke: #fe955f;
+        stroke-width: 2;
+      }
+
+      .tooltip {
+        position: absolute;
+        min-width: 60px;
+        min-height: 28px;
+        padding: 6px 12px 3px;
+        color: whitesmoke;
+        background: #245574;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 1;
+
+      }
+
+      .filter {
+        position: absolute;
+        right: 48px;
+        width: 260px;
+        font-size: 1.3em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>Estimate Pesticide 2000</h1>
+    </header>
+    <div class="container">
+      <div id="map"></div>
+    </div>
+    <footer>
+      <div class="container">
+        <ul>
+          <li>Map authored by Gene Hahn</li>
+          <li>data sourced from <a href="https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html">Cartographic Boundary Files</a></li>
+          <li>data sourced from <a href="https://water.usgs.gov/nawqa/pnsp/usage/maps/county-level/">USGS Pesticide National Synthesis Project</a></li>
+        </ul>
+      </div>
+      <div class="state">
+      </div>
+      <div class="county">
+        <div> </div>
+      </div>
+      <div class="tooltip">
+        <div> </div>
+      </div>
+      <div class="tooltip">
+        <div> </div>
+    </footer>
+    <!-- load D3 library -->
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <!-- load D3 color  -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <!-- load TopoJSON -->
+    <script src="https://unpkg.com/topojson@3"></script>
+    <script>
+      // JS code here
+      // request the JSON text file, then call drawMap function
+      // synchronous calls to data files
+      var statesJson = d3.json("data/cb_2017_us_state_500k.json")
+      countyJson = d3.json("data/cb_2017_us_county_500k.json")
+      pestCSV = d3.csv("data/pest2000.csv")
+
+      // define color generator
+      var color = d3.scaleQuantize()
+        .domain([1, 10])
+        .range(d3.schemeBlues[9])
+
+      // use promise to call all data files, then send data to callback
+      Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
+
+      // function fired if there is an error
+      function error(error) {
+        console.log(error)
+      }
+
+      // draw map
+      function drawMap(data) {
+        // console.log(data)
+        // log data to console
+        // console.log(data);
+
+        // data is array of our three datasets
+        var statesData = data[0],
+          countyData = data[1],
+          pestData = data[2]
+        chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
+        // console.log(pestData)
+
+        // console.log(countyData)
+        // define width and height of our SVG
+        var width = 960,
+          height = 600
+        //
+        // select the map element
+        var svg = d3.select("#map")
+          .append("svg") // append a new SVG element
+          .attr("width", width) // give the SVS element a width attribute and value
+          .attr("height", height) // same for the height
+        // console.log(countyData)
+        // get the GeoJSON representation of the TopoJSON data
+        var geojsonState = topojson.feature(statesData, {
+          type: "GeometryCollection",
+          geometries: statesData.objects.cb_2017_us_state_500k.geometries
+        })
+        var geojsonCounty = topojson.feature(countyData, {
+          type: "GeometryCollection",
+          geometries: countyData.objects.cb_2017_us_county_500k.geometries
+        })
+        // define a projection using the US Albers USA
+        // fit the extent of the GeoJSON data to specified
+        // width and height
+        // Alberts projection
+        var projection = d3.geoAlbersUsa()
+          .fitSize([width, height], geojsonState)
+
+        // define a path generator, which will use
+        // the specified projection
+        var path = d3.geoPath()
+          .projection(projection)
+
+        // create and append a new SVG g element to the SVG
+        var countyBrdy = svg.append("g")
+          .selectAll("path") // select all the paths (that don't exist yet)
+          .data(geojsonCounty.features) // use the GeoJSON data
+          .enter() // enter the selection
+          .append("path") // append new path elements for each data feature
+          .attr("d", path) // give each path a d attribute value
+          .attr("class", "county") // give each path a class of sate
+          .on("mouseover", function(d) { // when mousing over an element
+
+            d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
+            tooltip.style("opacity", 1).html(d.properties.NAME) // make tooltip visible and update info
+          })
+
+          .on("mouseout", function() { // when mousing out of an element
+            d3.select(this).classed("hover", false) // remove the class
+            tooltip.style("opacity", 0) // hide the element
+          })
+
+        var stateBrdy = svg.append("g")
+          .selectAll("path") // select all the paths (that don't exist yet)
+          .data(geojsonState.features) // use the GeoJSON data
+          .enter() // enter the selection
+          .append("path") // append new path elements for each data feature
+          .attr("d", path) // give each path a d attribute value
+          .attr("class", "state") // give each path a class of sate
+
+
+        // Create  div for the tooltip and hide with opacity
+        var tooltip = d3.select("path").append("div")
+          .attr("class", "tooltip")
+
+
+        // add polygon to map pestCSV --can stack layers with order in code
+        var pestData = svg.append("g")
+          .selectAll("path")
+          .data(pestData.sort(function(a, b) {
+
+            // return b.Total - a.Total // place the large ones on the bottom
+          }))
+
+
+          .attr("class", "pest")
+          .style("fill", function(d) { // give each
+            console.log(d)
+            return color(d.Industry_Type) // derive the hex color from the value
+          })
+
+          .on("mouseover", function(d) { // when mousing over an element
+            d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
+            tooltip.style("opacity", 1).html(d.Facility_Name + "<br>" + window.addCommas(d.Total) + " tons") // make tooltip visible and update info
+          })
+          .on("mouseout", function() { // when mousing out of an element
+            d3.select(this).classed("hover", false) // remove the class
+            tooltip.style("opacity", 0) // hide the element
+          })
+        // Create  div for the tooltip and hide with opacity
+        var tooltip = d3.select("body").append("div")
+          .attr("class", "tooltip")
+
+        // select the map element
+        d3.select("#map")
+          .on("mousemove", function(event) { // when mouse moves over it
+            // update the position of the tooltip
+            tooltip.style("left", (d3.event.pageX + 10) + "px")
+              .style("top", (d3.event.pageY - 30) + "px");
+          })
+
+        addFilter(pestData, chemicals)
+      }
+
+      function addFilter(pestData, chemicals) { // START addFilter function
+        // select the map element
+        var dropdown = d3.select('#map')
+          .append('select') // append a new select element
+          .attr('class', 'filter') // add a class name
+          .on('change', onchange) // listen for change
+        // array to hold select options
+        var uniqueTypes = [""];
+
+        // select all the options (that don't exist yet)
+        dropdown.selectAll('option')
+          .data(chemicals).enter() // attach our array as data
+          .append("option") // append a new option element for each data item
+          .text(function(d) {
+            return d // use the item as text
+          })
+          .attr("value", function(d) {
+            return d // use the time as value attribute
+          })
+
+        function onchange() { // START onChange
+          // get the current value from the select element
+          var val = d3.select('select').property('value')
+
+          // style the display of the chemicals
+          // chemicals.style("display", function(d) {
+          //   // if it's our default, show them all with inline
+          //   if (val === "2,4-D") return "inline"
+          //   // otherwise, if each industry type doesn't match the value
+          //   if (d != val) return "none" // don't display it
+          // })
+        } //END onChange
+      } // END addFilter function
+    </script>
+  </body>
+
+</html>
