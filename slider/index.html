@@ -1,22 +1,20 @@
 <!doctype html>
 <html lang="en">
-  <title>Year slider</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Year slider</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="https://unpkg.com/d3-simple-slider/build/d3-simple-slider.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://unpkg.com/d3-simple-slider/build/d3-simple-slider.js"></script>
 
-  <link rel="stylesheet" href="css/stylesblkstyle.css" </link>
+<link rel="stylesheet" href="../css/slider.css" </link> <body>
+<div class="container">
+  <div class="col-sm">
+    <div id="yearSelect"></div>
 
-  <body>
-    <div class="container">
-      <div class="col-sm">
-        <div id="slider3"></div>
-        <a id="setValue3" href="#">Reset</a>
-      </div>
-    </div>
-    <div>
+  </div>
+</div>
+<div>
   </body>
 
   <script>
@@ -25,7 +23,7 @@
 
     });
 
-    var slider3 = d3.sliderHorizontal()
+    var yearSelect = d3.sliderHorizontal()
       .min(d3.min(data3))
       .max(d3.max(data3))
       .step(1000 * 60 * 60 * 24 * 365)
@@ -33,24 +31,21 @@
       .tickFormat(d3.timeFormat('%Y'))
       .tickValues(data3)
       .on('onchange', val => {
-        d3.select("p#value3").text(d3.timeFormat('%Y')(val));
+        d3.select("p#yearSelect").text(d3.timeFormat('%Y')(val));
+        console.log(val)
       });
 
 
 
-    var group3 = d3.select("div#slider3").append("svg")
+    var group3 = d3.select("div#yearSelect").append("svg")
       .attr("width", 800)
       .attr("height", 100)
       .append("g")
       .attr("transform", "translate(100,60)");
 
-    group3.call(slider3);
+    group3.call(yearSelect);
 
-    d3.select("p#value3").text(d3.timeFormat('%Y')(slider3.value()));
-    d3.select("a#setValue3").on("click", () => {
-      slider3.value(new Date(1992, 11, 17));
-      d3.event.preventDefault();
-    });
+    d3.select("p#yearSelect").text(d3.timeFormat('%Y')(yearSelect.value()));
   </script>
 
 </html>

@@ -109,6 +109,11 @@
     <h1>Estimate Pesticide 2000</h1>
   </header>
   <div class="container">
+    <form>
+      <label for="year">Year</label>
+      <input type="range" min=1992 max=2016 step=1 id="year" value=2014 oninput="selected_year.value = year.value">
+      <output name="selected_year" id="selected_year">2000</output>
+    </form>
     <div id="map"></div>
   </div>
   <footer>
@@ -132,18 +137,23 @@
   </footer>
   <!-- load D3 library -->
   <script src="https://d3js.org/d3.v5.js"></script>
+
   <!-- load D3 color  -->
+  <script src="https://d3js.org/d3-color.v1.min.js"></script>
+  <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
   <!-- load TopoJSON -->
   <script src="https://unpkg.com/topojson@3"></script>
+
+
   <script>
     // JS code here
     // request the JSON text file, then call drawMap function
     // synchronous calls to data files
-    var statesJson = d3.json("data/cb_2017_us_state_500k.json")
+    var statesJson = d3.json("data/us-states.json")
     countyJson = d3.json("data/us.json")
     pestCSV = d3.csv("data/pest2000.csv")
-    console.log(pestCSV)
+    // console.log(pestCSV)
     // define color generator
     var color = d3.scaleQuantize()
       .domain([1, 10])
@@ -166,15 +176,20 @@
       // data is array of our three datasets
       var statesData = data[0],
         countyData = data[1],
-        pestData = data[2]
-      chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
+        pestData = data[2],
+        chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
       // console.log(pestData)
 
       // console.log(countyData)
       // define width and height of our SVG
       var width = 960,
         height = 600
-      //
+
+      // slider for year selection
+      var slider = d3.select('#year');
+      slider.on('change', function() {
+        // console.log(this.value);
+      });
       // select the map element
       var svg = d3.select("#map")
         .append("svg") // append a new SVG element
@@ -202,6 +217,8 @@
       var path = d3.geoPath()
         .projection(projection)
 
+
+
       // create and append a new SVG g element to the SVG
       var countyBrdy = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
@@ -211,7 +228,7 @@
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
         .on("mouseover", function(d) { // when mousing over an element
-
+          // console.log(d)
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
           tooltip.style("opacity", 1).html(d.properties.NAME) // make tooltip visible and update info
         })
@@ -234,10 +251,10 @@
       var tooltip = d3.select("path").append("div")
         .attr("class", "tooltip")
 
-
       // add polygon to map pestCSV --can stack layers with order in code
       var pestData = svg.append("g")
         .selectAll("path")
+
         .data(pestData.sort(function(a, b) {
 
           // return b.Total - a.Total // place the large ones on the bottom
@@ -280,7 +297,8 @@
         .attr('class', 'filter') // add a class name
         .on('change', onchange) // listen for change
       // array to hold select options
-      var uniqueTypes = [""];
+      var uniqueTypes = [];
+
 
       // select all the options (that don't exist yet)
       dropdown.selectAll('option')
@@ -290,13 +308,13 @@
           return d // use the item as text
         })
         .attr("value", function(d) {
+          console.log("value")
           return d // use the time as value attribute
         })
 
       function onchange() { // START onChange
         // get the current value from the select element
         var val = d3.select('select').property('value')
-
         // style the display of the chemicals
         // chemicals.style("display", function(d) {
         //   // if it's our default, show them all with inline
