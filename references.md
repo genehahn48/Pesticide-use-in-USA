@@ -9,3 +9,9 @@ jadiehm’s Block af4a00140c213dfbc4e6
 Updated January 26, 2016
 Choropleth U.S. county map
 http://bl.ocks.org/jadiehm/af4a00140c213dfbc4e6
+
+
+Darren Jaworski’s Block 5874214
+Updated December 18, 2015
+Tutorial II
+http://bl.ocks.org/darrenjaworski/5874214

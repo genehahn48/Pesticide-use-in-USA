@@ -127,7 +127,7 @@
   <div class="container">
     <form>
       <label for="year">Year</label>
-      <input type="range" min=1992 max=2016 step=1 id="year" value=2014 oninput="selected_year.value = year.value">
+      <input type="range" min=1992 max=2016 step=1 id="year" value=2000 oninput="selected_year.value = year.value">
       <output name="selected_year" id="selected_year">2000</output>
     </form>
     <div id="map"></div>
@@ -172,8 +172,8 @@
     // console.log(pestCSV)
     // define color generator
     // legend min max range color
-    var minimum = 5,
-      maximum = 24;
+    var minimum = 0,
+      maximum = 10000;
     var minimumColor = "#fff5f0",
       maximumColor = "#67000d";
     var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
@@ -283,7 +283,7 @@
 
         .attr("class", "pest")
         .style("fill", function(d) { // give each
-          console.log(d)
+          // console.log(d)
           return color(d.Industry_Type) // derive the hex color from the value
         })
 
@@ -329,7 +329,7 @@
           return d // use the item as text
         })
         .attr("value", function(d) {
-          console.log(d)
+          // console.log(d)
           return d // use the time as value attribute
         })
 
@@ -348,7 +348,7 @@
 
     function addLegend(minimum, maximum, minimumColor, maximumColor, color) {
       var w = 140,
-        h = 300;
+        h = 600;
 
       var key = d3.select("body").append("svg").attr("id", "key").attr("width", w).attr("height", h);
 
@@ -358,13 +358,15 @@
 
       legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
 
-      key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,10)");
+      key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,65)");
 
-      var y = d3.scaleLinear().range([200, 0]).domain([minimum, maximum]);
+      var y = d3.scaleLinear().range([565, 65]).domain([minimum, maximum]);
 
-      var yAxis = d3.svg.axis().scale(y).orient("right");
+      var yAxis = d3.axisRight(y);
 
-      key.append("g").attr("class", "y axis").attr("transform", "translate(42,10)").call(yAxis).append("text").attr("transform", "rotate(-90)").attr("y", 30).attr("dy", ".71em").style("text-anchor", "end").text("% Below FPL");
+      key.append("g").attr("class", "y axis").attr("transform", "translate(42,0)").call(yAxis)
+        .append("text").attr("transform", "rotate(-90)").attr("y", 45).attr("dy", ".71em").style("text-anchor", "end").text(
+          "kg per County");
     }
   </script>
 </body>
