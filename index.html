@@ -208,7 +208,7 @@
         pestData.forEach(function(each) {
           if (county.properties.GEOID == each.geoid) {
             county.properties["pestData"] = each
-            // console.log(county.properties["pestData"]["2000"])
+            // console.log(county.properties["pestData"][year.value])
           }
         })
       });
