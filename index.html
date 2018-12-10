@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Estimates of Pesticide use in USA </title>
+  <title>Glyphosate Est. 5 Year span </title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
 
@@ -125,7 +125,7 @@
 
 <body>
   <header>
-    <h1>Estimate Pesticide 2000</h1>
+    <h1>Glyphosate Est. 5 Year span</h1>
   </header>
   <div class="container">
     <form>
@@ -187,7 +187,7 @@
 
     // function fired if there is an error
     function error(error) {
-      console.log(error)
+      // console.log(error)
     }
 
     // draw map
@@ -202,8 +202,17 @@
         pestData = data[2],
         chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
       // console.log(pestData)
-
       // console.log(countyData)
+
+      countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
+        pestData.forEach(function(each) {
+          if (county.properties.GEOID == each.geoid) {
+            county.properties["pestData"] = each
+            // console.log(county.properties["pestData"]["2000"])
+          }
+        })
+      });
+
       // define width and height of our SVG
       var width = 960,
         height = 600
@@ -241,7 +250,7 @@
         .projection(projection)
 
 
-
+      console.log(year.value)
       // create and append a new SVG g element to the SVG
       var countyBrdy = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
@@ -251,9 +260,10 @@
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
         .on("mouseover", function(d) { // when mousing over an element
-          // console.log(d)
+          console.log(d)
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
-          tooltip.style("opacity", 1).html(d.properties.NAME) // make tooltip visible and update info
+          tooltip.style("opacity", 1).html(d.properties.pestData.co_name + ", " + d.properties.pestData.st_name +
+            "<br> " + year.value + ": " + d.properties.pestData[year.value] + " kg") // make tooltip visible and update info
         })
 
         .on("mouseout", function() { // when mousing out of an element
@@ -309,7 +319,7 @@
           tooltip.style("left", (d3.event.pageX + 10) + "px")
             .style("top", (d3.event.pageY - 30) + "px");
         })
-
+      // console.log(pestData)
       addFilter(pestData, chemicals)
       addLegend(minimum, maximum, minimumColor, maximumColor, color)
     }
