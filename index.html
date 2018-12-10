@@ -22,7 +22,10 @@
       padding: 18px 0;
       box-shadow: 0px 1px 3px #245574;
     }
-
+    form {
+      margin: auto;
+      width: 50%;
+    }
     .container {
       width: 960px;
       margin: 18px auto;
@@ -127,7 +130,7 @@
   <div class="container">
     <form>
       <label for="year">Year</label>
-      <input type="range" min=1992 max=2016 step=1 id="year" value=2000 oninput="selected_year.value = year.value">
+      <input type="range" min=1995 max=2015 step=5 id="year" value=2000 oninput="selected_year.value = year.value">
       <output name="selected_year" id="selected_year">2000</output>
     </form>
     <div id="map"></div>
@@ -168,12 +171,12 @@
     // synchronous calls to data files
     var statesJson = d3.json("data/us-states.json")
     countyJson = d3.json("data/us.json")
-    pestCSV = d3.csv("data/pest2000.csv")
+    pestCSV = d3.csv("data/gly5yrhi.csv")
     // console.log(pestCSV)
     // define color generator
     // legend min max range color
     var minimum = 0,
-      maximum = 10000;
+      maximum = 650000;
     var minimumColor = "#fff5f0",
       maximumColor = "#67000d";
     var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
