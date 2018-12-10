@@ -250,7 +250,7 @@
         .projection(projection)
 
 
-      console.log(year.value)
+      // console.log(year.value)
       // create and append a new SVG g element to the SVG
       var countyBrdy = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
@@ -260,10 +260,10 @@
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
         .on("mouseover", function(d) { // when mousing over an element
-          console.log(d)
+          // console.log(d)
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
           tooltip.style("opacity", 1).html(d.properties.pestData.co_name + ", " + d.properties.pestData.st_name +
-            "<br> " + year.value + ": " + d.properties.pestData[year.value] + " kg") // make tooltip visible and update info
+            "<br>" + d.properties.pestData[year.value] + " kg") // make tooltip visible and update info
         })
 
         .on("mouseout", function() { // when mousing out of an element
@@ -285,29 +285,8 @@
         .attr("class", "tooltip")
 
       // add polygon to map pestCSV --can stack layers with order in code
-      var pestData = svg.append("g")
-        .selectAll("path")
-
-        .data(pestData.sort(function(a, b) {
-
-          // return b.Total - a.Total // place the large ones on the bottom
-        }))
 
 
-        .attr("class", "pest")
-        .style("fill", function(d) { // give each
-          // console.log(d)
-          return color(d.Industry_Type) // derive the hex color from the value
-        })
-
-        .on("mouseover", function(d) { // when mousing over an element
-          d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
-          tooltip.style("opacity", 1).html(d.Facility_Name + "<br>" + window.addCommas(d.Total) + " tons") // make tooltip visible and update info
-        })
-        .on("mouseout", function() { // when mousing out of an element
-          d3.select(this).classed("hover", false) // remove the class
-          tooltip.style("opacity", 0) // hide the element
-        })
       // Create  div for the tooltip and hide with opacity
       var tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
@@ -342,20 +321,15 @@
           return d // use the item as text
         })
         .attr("value", function(d) {
-          // console.log(d)
+          // console.log(d.value)
           return d // use the time as value attribute
         })
 
       function onchange() { // START onChange
         // get the current value from the select element
         var val = d3.select('select').property('value')
-        // style the display of the chemicals
-        // chemicals.style("display", function(d) {
-        //   // if it's our default, show them all with inline
-        //   if (val === "2,4-D") return "inline"
-        //   // otherwise, if each industry type doesn't match the value
-        //   if (d != val) return "none" // don't display it
-        // })
+        console.log(val)
+
       } //END onChange
     } // END addFilter function
 
@@ -380,6 +354,13 @@
       key.append("g").attr("class", "y axis").attr("transform", "translate(42,0)").call(yAxis)
         .append("text").attr("transform", "rotate(-90)").attr("y", 45).attr("dy", ".71em").style("text-anchor", "end").text(
           "kg per County");
+    }
+
+    function calLbs(lbsAc) { // calculate lbs per Acre per county
+      var lbs = ((lbsAc[year.value] * 2.2046226218) / lbsAc.aland_ac)
+      // console.log(lbs)
+      // console.log(year.value)
+      return lbs
     }
   </script>
 </body>
