@@ -58,7 +58,6 @@
     }
 
     .county {
-      fill: grey;
       stroke: grey;
       stroke-width: .3;
     }
@@ -181,10 +180,12 @@
       maximum = 650000;
     var minimumColor = "#fff5f0",
       maximumColor = "#67000d";
-    var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
+    // var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
 
+    var color = d3.scaleQuantize()
+      .domain([.1, 56054]) // low and high from the dataset
+      .range(d3.schemeYlOrRd[9])
 
-    // var color = d3.scaleOrdinal(d3.schemeSet1)
 
 
     // use promise to call all data files, then send data to callback
@@ -299,7 +300,6 @@
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
         .attr('fill', function(d) {
-
           if (d.properties.pestData) {
             // console.log(d.properties.pestData[year.value])
             return color(+d.properties.pestData[year.value]);
@@ -348,13 +348,7 @@
       // console.log(pestData)
       addFilter(pestData, chemicals)
       addLegend(minimum, maximum, minimumColor, maximumColor, color)
-
-      if (d.properties.pestData) {
-        return color(+d.properties.pestData['low']);
-      }
-    })
-
-
+    }
 
     function addFilter(pestData, chemicals) { // START addFilter function
       // select the map element
