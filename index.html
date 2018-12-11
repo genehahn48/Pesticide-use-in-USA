@@ -50,6 +50,7 @@
       height: 600px;
     }
 
+
     .state {
       fill: none;
       stroke: red;
@@ -57,7 +58,6 @@
     }
 
     .county {
-
       stroke: grey;
       stroke-width: .3;
     }
@@ -174,6 +174,7 @@
     pestCSV = d3.csv("data/gly5yrhi.csv")
     // console.log(pestCSV)
     // define color generator
+
     // legend min max range color
     var minimum = 0,
       maximum = 650000;
@@ -183,6 +184,9 @@
     var color = d3.scaleQuantize()
       .domain([0, 65000]) // low and high from the dataset
       .range(d3.schemeYlOrRd[9])
+
+    // var color = d3.scaleOrdinal(d3.schemeSet1)
+
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
@@ -196,6 +200,7 @@
     function drawMap(data) {
       // console.log(data)
       // log data to console
+
       // console.log(data);
 
       // data is array of our three datasets
@@ -214,6 +219,39 @@
           }
         })
       });
+
+
+      // data is array of our two datasets
+      var statesData = data[0],
+        countyData = data[1],
+        pestData = data[2]
+      
+      var lowValue = Infinity,
+          highValue = 0;
+
+      countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
+        pestData.forEach(function(each) {
+          // console.log(each.low, each.high)
+          // if(each.low < lowValue) {
+          //   lowValue = each.low
+          // }
+          // if(each.high > highValue) {
+          //   highValue = each.high
+          // }
+          if(each.geoid.length < 5) {
+            each.geoid = "0" + each.geoid
+          }
+          if(county.properties.GEOID == each.geoid) {
+            county.properties['pestData'] = each
+          }
+        })
+
+      })
+
+      var color = d3.scaleQuantize()
+        .domain([.1, 56054]) // low and high from the dataset
+        .range(d3.schemeYlOrRd[9])
+
 
       // define width and height of our SVG
       var width = 960,
@@ -263,6 +301,7 @@
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
         .attr('fill', function(d) {
+
           if (d.properties.pestData) {
             // console.log(d.properties.pestData[year.value])
             return color(+d.properties.pestData[year.value]);
@@ -311,7 +350,13 @@
       // console.log(pestData)
       addFilter(pestData, chemicals)
       addLegend(minimum, maximum, minimumColor, maximumColor, color)
-    }
+
+          if(d.properties.pestData) {
+            return color(+d.properties.pestData['low']);
+          }
+        })
+
+    
 
     function addFilter(pestData, chemicals) { // START addFilter function
       // select the map element
