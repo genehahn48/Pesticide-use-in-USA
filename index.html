@@ -57,7 +57,7 @@
     }
 
     .county {
-      fill: grey;
+
       stroke: grey;
       stroke-width: .3;
     }
@@ -179,8 +179,10 @@
       maximum = 650000;
     var minimumColor = "#fff5f0",
       maximumColor = "#67000d";
-    var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
-
+    // var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
+    var color = d3.scaleQuantize()
+      .domain([.1, 56054]) // low and high from the dataset
+      .range(d3.schemeYlOrRd[9])
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
@@ -220,6 +222,7 @@
       // slider for year selection
       var slider = d3.select('#year');
       slider.on('change', function() {
+        drawMap(data)
         // console.log(this.value);
       });
       // select the map element
@@ -259,6 +262,13 @@
         .append("path") // append new path elements for each data feature
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
+        .attr('fill', function(d) {
+          if (d.properties.pestData) {
+            // console.log(d.properties.pestData[year.value])
+            return color(+d.properties.pestData[year.value]);
+          }
+        })
+
         .on("mouseover", function(d) { // when mousing over an element
           // console.log(d)
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
