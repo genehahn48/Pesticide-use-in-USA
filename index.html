@@ -125,7 +125,7 @@
 
 <body>
   <header>
-    <h1>Glyphosate Est. 5 Year span</h1>
+    <h1>Select Chemicals 5 Year span</h1>
   </header>
   <div class="container">
     <form>
@@ -173,32 +173,36 @@
     countyJson = d3.json("data/us.json")
     pestCSV = d3.csv("data/gly5yrhi.csv")
     // console.log(pestCSV)
-    // define color generator
 
+    // add chemical Data csv
+    var atrCSV = d3.csv("data/atrazine.csv")
+    dicCSV = d3.json("data/dicamba.csv")
+    fomCSV = d3.json("data/fomesafen.csv")
+    glyCSV = d3.csv("data/glyphosate.csv")
+    parCSV = d3.csv("data/paraquat.csv")
+    // define color generator
     // legend min max range color
     var minimum = 0,
       maximum = 650000;
     var minimumColor = "#fff5f0",
       maximumColor = "#67000d";
     // var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
-
     var color = d3.scaleQuantize()
       .domain([.1, 56054]) // low and high from the dataset
       .range(d3.schemeYlOrRd[9])
-
-
-
+    console.log("work")
     // use promise to call all data files, then send data to callback
-    Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
+    Promise.all([statesJson, countyJson, pestCSV, atrCSV, dicCSV, fomCSV, glyCSV, parCSV]).then(drawMap, error)
 
     // function fired if there is an error
     function error(error) {
       // console.log(error)
     }
-
+    console.log("work")
     // draw map
     function drawMap(data) {
-      // console.log(data)
+      console.log(data)
+      console.log("work")
       // log data to console
 
       // console.log(data);
@@ -208,7 +212,7 @@
         countyData = data[1],
         pestData = data[2],
         chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
-      // console.log(pestData)
+      console.log(data[2])
       // console.log(countyData)
 
       countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
