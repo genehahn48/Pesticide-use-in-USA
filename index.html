@@ -223,6 +223,7 @@
           .domain([.1, 56054]) // low and high from the dataset
           .range(d3.schemeYlOrRd[9])
 
+<<<<<<< HEAD
 
         // define width and height of our SVG
         var width = 960,
@@ -243,11 +244,59 @@
         var geojsonState = topojson.feature(statesData, {
           type: "GeometryCollection",
           geometries: statesData.objects.cb_2017_us_state_500k.geometries
+=======
+      var stateBrdy = svg.append("g")
+        .selectAll("path") // select all the paths (that don't exist yet)
+        .data(geojsonState.features) // use the GeoJSON data
+        .enter() // enter the selection
+        .append("path") // append new path elements for each data feature
+        .attr("d", path) // give each path a d attribute value
+        .attr("class", "state") // give each path a class of sate
+
+
+      // Create  div for the tooltip and hide with opacity
+      var tooltip = d3.select("path").append("div")
+        .attr("class", "tooltip")
+
+      // add polygon to map pestCSV --can stack layers with order in code
+
+
+      // Create  div for the tooltip and hide with opacity
+      var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+
+      // select the map element
+      d3.select("#map")
+        .on("mousemove", function(event) { // when mouse moves over it
+          // update the position of the tooltip
+          tooltip.style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 30) + "px");
+        })
+      // console.log(pestData)
+      addFilter(chemicals)
+      addLegend(minimum, maximum, minimumColor, maximumColor, color)
+    }
+
+    function addFilter(chemicals) { // START addFilter function
+      // select the map element
+      var dropdown = d3.select('#map')
+        .append('select') // append a new select element
+        .attr('class', 'filter') // add a class name
+        .on('change', onchange) // listen for change
+      // select all the options (that don't exist yet)
+      dropdown.selectAll('option')
+        .data(chemicals).enter() // attach our array as data
+        .append("option") // append a new option element for each data item
+        .text(function(d) {
+
+          return d // use the item as text
+>>>>>>> parent of ce6b739... try to add state abbr
         })
         var geojsonCounty = topojson.feature(countyData, {
           type: "GeometryCollection",
           geometries: countyData.objects.cb_2017_us_county_500k.geometries
         })
+<<<<<<< HEAD
         // define a projection using the US Albers USA
         // fit the extent of the GeoJSON data to specified
         // width and height
@@ -288,6 +337,19 @@
             d3.select(this).classed("hover", false) // remove the class
             tooltip.style("opacity", 0) // hide the element
           })
+=======
+    } // END addFilter function
+
+    function onchange() { // START onChange
+      // get the current value from the select element
+      var val = d3.select('select').property('value')
+      console.log(val)
+    } //END onChange
+
+    function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
+      var w = 140,
+        h = 600;
+>>>>>>> parent of ce6b739... try to add state abbr
 
         var stateBrdy = svg.append("g")
           .selectAll("path") // select all the paths (that don't exist yet)
