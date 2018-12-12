@@ -215,12 +215,6 @@
         // bind csv data to county
         bind(data, chemicals, countyData)
 
-        // console.log(countyData)
-
-        var lowValue = Infinity,
-          highValue = 0;
-
-
         var color = d3.scaleQuantize()
           .domain([.1, 56054]) // low and high from the dataset
           .range(d3.schemeYlOrRd[9])
@@ -339,24 +333,26 @@
           .append('select') // append a new select element
           .attr('class', 'filter') // add a class name
           .on('change', onchange()) // listen for change
+
         // select all the options (that don't exist yet)
         dropdown.selectAll('option')
           .data(chemicals).enter() // attach our array as data
           .append("option") // append a new option element for each data item
           .text(function(d) {
-
             return d // use the item as text
           })
           .attr("value", function(d) {
-            // console.log(d.value)
             return d // use the time as value attribute
           })
+
+
       } // END addFilter function
 
       function onchange() { // START onChange
         // get the current value from the select element
         var valChem = d3.select('select').property('value')
         console.log(valChem)
+        // console.log(year.value)
         return valChem
       } //END onChange
 
