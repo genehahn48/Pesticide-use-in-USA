@@ -298,7 +298,18 @@
         .append("path") // append new path elements for each data feature
         .attr("d", path) // give each path a d attribute value
         .attr("class", "state") // give each path a class of sate
-
+      // .text(function(d) {
+      //   return d.properties.STUSPS;
+      // })
+      // console.log(d)
+      // .attr("x", function(d) {
+      //   return path.centroid(d)[0];
+      // })
+      // .attr("y", function(d) {
+      //   return path.centroid(d)[1];
+      // })
+      // .attr("text-anchor", "middle")
+      // .attr('font-size', '20pt');
 
       // Create  div for the tooltip and hide with opacity
       var tooltip = d3.select("path").append("div")
@@ -341,13 +352,13 @@
           // console.log(d.value)
           return d // use the time as value attribute
         })
-    } // END addFilter function
 
-    function onchange() { // START onChange
-      // get the current value from the select element
-      var val = d3.select('select').property('value')
-      console.log(val)
-    } //END onChange
+      function onchange() { // START onChange
+        // get the current value from the select element
+        var val = d3.select('select').property('value')
+        console.log(val)
+      } //END onChange
+    } // END addFilter function
 
     function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
       var w = 140,
