@@ -280,7 +280,6 @@
           })
 
           .on("mouseover", function(d) { // when mousing over an element
-            // console.log(d)
             d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
             tooltip.style("opacity", 1).html(d.properties.Atrazine.co_name + ", " + d.properties.Atrazine.st_name +
               "<br>" + d.properties.Atrazine[year.value] + " kg") // make tooltip visible and update info
@@ -339,7 +338,7 @@
         var dropdown = d3.select('#map')
           .append('select') // append a new select element
           .attr('class', 'filter') // add a class name
-          .on('change', onchange) // listen for change
+          .on('change', onchange()) // listen for change
         // select all the options (that don't exist yet)
         dropdown.selectAll('option')
           .data(chemicals).enter() // attach our array as data
@@ -352,13 +351,14 @@
             // console.log(d.value)
             return d // use the time as value attribute
           })
-
-        function onchange() { // START onChange
-          // get the current value from the select element
-          var val = d3.select('select').property('value')
-          console.log(val)
-        } //END onChange
       } // END addFilter function
+
+      function onchange() { // START onChange
+        // get the current value from the select element
+        var valChem = d3.select('select').property('value')
+        console.log(valChem)
+        return valChem
+      } //END onChange
 
       function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
         var w = 140,
@@ -387,7 +387,7 @@
       function calLbs(lbsAc) { // START calLbs function
         var lbs = ((lbsAc[year.value] * 2.2046226218) / lbsAc.aland_ac)
         return lbs
-      } //END calLbs function
+      } //END calLbs function+
 
       function bind(data, chemicals, countyData) { // START bind function
         for (i = 0; i < chemicals.length; i++) {
@@ -399,8 +399,8 @@
               }
             })
           });
-        } // END bind function
-      }
+        }
+      } // END bind function
     </script>
   </body>
 
