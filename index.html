@@ -135,7 +135,11 @@
     <div class="container">
       <form>
         <label for="year">Year</label>
+<<<<<<< HEAD
         <input type="range" min=1995 max=2015 step=5 id="year" value=1995 oninput="selected_year.value = year.value">
+=======
+        <input type="range" min=1995 max=2015 step=5 id="year" value=2000 oninput="selected_year.value = year.value">
+>>>>>>> parent of 34ca88d... bind csv file to county data
         <output name="selected_year" id="selected_year">2000</output>
       </form>
       <div id="map"></div>
@@ -176,6 +180,7 @@
       // synchronous calls to data files
       var statesJson = d3.json("data/us-states.json")
       countyJson = d3.json("data/us.json")
+<<<<<<< HEAD
 
 
       // add chemical Data csv
@@ -187,16 +192,32 @@
       // chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"]
       // console.log(year.value)
 
+=======
+      pestCSV = d3.csv("data/gly5yrhi.csv")
+      // console.log(pestCSV)
+
+      // add chemical Data csv
+      // var atrCSV = d3.csv("data/atrazine.csv")
+      // dicCSV = d3.json("data/dicamba.csv")
+      // fomCSV = d3.json("data/fomesafen.csv")
+      // glyCSV = d3.csv("data/glyphosate.csv")
+      // parCSV = d3.csv("data/paraquat.csv")
+>>>>>>> parent of 34ca88d... bind csv file to county data
       // define color generator
       // legend min max range color
       var minimum = 0,
         maximum = 650000;
       var minimumColor = "#fff5f0",
         maximumColor = "#67000d";
+<<<<<<< HEAD
 
+=======
+      // var color = d3.scaleLinear().domain([minimum, maximum]).range([minimumColor, maximumColor]);
+>>>>>>> parent of 34ca88d... bind csv file to county data
       var color = d3.scaleQuantize()
         .domain([0, 56054]) // low and high from the dataset
         .range(d3.schemeYlOrRd[9])
+<<<<<<< HEAD
       // console.log("work")
       // use promise to call all data files, then send data to callback
       Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(drawMap, error)
@@ -218,10 +239,74 @@
         var lowValue = Infinity,
           highValue = 0;
 
+=======
+      console.log("work")
+      // use promise to call all data files, then send data to callback
+      Promise.all([statesJson, countyJson, pestCSV]).then(drawMap, error)
+      // , atrCSV, dicCSV, fomCSV, glyCSV, parCSV
+      // function fired if there is an error
+      function error(error) {
+        // console.log(error)
+      }
+      console.log("work")
+      // draw map
+      function drawMap(data) {
+        console.log(data)
+        console.log("work")
+        // log data to console
+
+        // console.log(data);
+
+        // data is array of our three datasets
+        var statesData = data[0],
+          countyData = data[1],
+          pestData = data[2],
+          chemicals = ["2,4-D", "Atrazine", "Chlorimuron", "Dicamba", "Flumioxazin", "Fomesafen", "Glyphosate", "Mesotrione", "Paraquat"]
+        console.log(data[2])
+        // console.log(countyData)
+
+        countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
+          pestData.forEach(function(each) {
+            if (county.properties.GEOID == each.geoid) {
+              county.properties["pestData"] = each
+              // console.log(county.properties["pestData"][year.value])
+            }
+          })
+        });
+
+
+        // data is array of our two datasets
+        var statesData = data[0],
+          countyData = data[1],
+          pestData = data[2]
+
+        var lowValue = Infinity,
+          highValue = 0;
+
+        countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
+          pestData.forEach(function(each) {
+            // console.log(each.low, each.high)
+            // if(each.low < lowValue) {
+            //   lowValue = each.low
+            // }
+            // if(each.high > highValue) {
+            //   highValue = each.high
+            // }
+            if (each.geoid.length < 5) {
+              each.geoid = "0" + each.geoid
+            }
+            if (county.properties.GEOID == each.geoid) {
+              county.properties['pestData'] = each
+            }
+          })
+
+        })
+>>>>>>> parent of 34ca88d... bind csv file to county data
 
         var color = d3.scaleQuantize()
           .domain([.1, 56054]) // low and high from the dataset
           .range(d3.schemeYlOrRd[9])
+<<<<<<< HEAD
 
         var stateBrdy = svg.append("g")
           .selectAll("path") // select all the paths (that don't exist yet)
@@ -230,15 +315,97 @@
           .append("path") // append new path elements for each data feature
           .attr("d", path) // give each path a d attribute value
           .attr("class", "state") // give each path a class of sate
+=======
 
 
+        // define width and height of our SVG
+        var width = 960,
+          height = 600
+
+        // slider for year selection
+        var slider = d3.select('#year');
+        slider.on('change', function() {
+          // console.log(this.value);
+        });
+        // select the map element
+        var svg = d3.select("#map")
+          .append("svg") // append a new SVG element
+          .attr("width", width) // give the SVS element a width attribute and value
+          .attr("height", height) // same for the height
+        // console.log(countyData)
+        // get the GeoJSON representation of the TopoJSON data
+        var geojsonState = topojson.feature(statesData, {
+          type: "GeometryCollection",
+          geometries: statesData.objects.cb_2017_us_state_500k.geometries
+        })
+        var geojsonCounty = topojson.feature(countyData, {
+          type: "GeometryCollection",
+          geometries: countyData.objects.cb_2017_us_county_500k.geometries
+        })
+        // define a projection using the US Albers USA
+        // fit the extent of the GeoJSON data to specified
+        // width and height
+        // Alberts projection
+        var projection = d3.geoAlbersUsa()
+          .fitSize([width, height], geojsonState)
+
+        // define a path generator, which will use
+        // the specified projection
+        var path = d3.geoPath()
+          .projection(projection)
+
+
+        // console.log(year.value)
+        // create and append a new SVG g element to the SVG
+        var countyBrdy = svg.append("g")
+          .selectAll("path") // select all the paths (that don't exist yet)
+          .data(geojsonCounty.features) // use the GeoJSON data
+          .enter() // enter the selection
+          .append("path") // append new path elements for each data feature
+          .attr("d", path) // give each path a d attribute value
+          .attr("class", "county") // give each path a class of sate
+          .attr('fill', function(d) {
+            if (d.properties.pestData) {
+              // console.log(d.properties.pestData[year.value])
+              return color(+d.properties.pestData[year.value]);
+            }
+          })
+
+          .on("mouseover", function(d) { // when mousing over an element
+            // console.log(d)
+            d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
+            tooltip.style("opacity", 1).html(d.properties.pestData.co_name + ", " + d.properties.pestData.st_name +
+              "<br>" + d.properties.pestData[year.value] + " kg") // make tooltip visible and update info
+          })
+>>>>>>> parent of 34ca88d... bind csv file to county data
+
+          .on("mouseout", function() { // when mousing out of an element
+            d3.select(this).classed("hover", false) // remove the class
+            tooltip.style("opacity", 0) // hide the element
+          })
+
+<<<<<<< HEAD
         // Create  div for the tooltip and hide with opacity
         var tooltip = d3.select("path").append("div")
           .attr("class", "tooltip")
 
         // add polygon to map pestCSV --can stack layers with order in code
+=======
+        var stateBrdy = svg.append("g")
+          .selectAll("path") // select all the paths (that don't exist yet)
+          .data(geojsonState.features) // use the GeoJSON data
+          .enter() // enter the selection
+          .append("path") // append new path elements for each data feature
+          .attr("d", path) // give each path a d attribute value
+          .attr("class", "state") // give each path a class of sate
 
+>>>>>>> parent of 34ca88d... bind csv file to county data
 
+        // Create  div for the tooltip and hide with opacity
+        var tooltip = d3.select("path").append("div")
+          .attr("class", "tooltip")
+
+<<<<<<< HEAD
         // Create  div for the tooltip and hide with opacity
         var tooltip = d3.select("body").append("div")
           .attr("class", "tooltip")
@@ -426,6 +593,85 @@
             })
           });
         } // END bind function
+=======
+        // add polygon to map pestCSV --can stack layers with order in code
+
+
+        // Create  div for the tooltip and hide with opacity
+        var tooltip = d3.select("body").append("div")
+          .attr("class", "tooltip")
+
+        // select the map element
+        d3.select("#map")
+          .on("mousemove", function(event) { // when mouse moves over it
+            // update the position of the tooltip
+            tooltip.style("left", (d3.event.pageX + 10) + "px")
+              .style("top", (d3.event.pageY - 30) + "px");
+          })
+        // console.log(pestData)
+        addFilter(pestData, chemicals)
+        addLegend(minimum, maximum, minimumColor, maximumColor, color)
+      }
+
+      function addFilter(pestData, chemicals) { // START addFilter function
+        // select the map element
+        var dropdown = d3.select('#map')
+          .append('select') // append a new select element
+          .attr('class', 'filter') // add a class name
+          .on('change', onchange) // listen for change
+        // array to hold select options
+        var uniqueTypes = [];
+
+
+        // select all the options (that don't exist yet)
+        dropdown.selectAll('option')
+          .data(chemicals).enter() // attach our array as data
+          .append("option") // append a new option element for each data item
+          .text(function(d) {
+            return d // use the item as text
+          })
+          .attr("value", function(d) {
+            // console.log(d.value)
+            return d // use the time as value attribute
+          })
+
+        function onchange() { // START onChange
+          // get the current value from the select element
+          var val = d3.select('select').property('value')
+          console.log(val)
+
+        } //END onChange
+      } // END addFilter function
+
+      function addLegend(minimum, maximum, minimumColor, maximumColor, color) {
+        var w = 140,
+          h = 600;
+
+        var key = d3.select("body").append("svg").attr("id", "key").attr("width", w).attr("height", h);
+
+        var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+
+        legend.append("stop").attr("offset", "0%").attr("stop-color", maximumColor).attr("stop-opacity", 1);
+
+        legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
+
+        key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,65)");
+
+        var y = d3.scaleLinear().range([565, 65]).domain([minimum, maximum]);
+
+        var yAxis = d3.axisRight(y);
+
+        key.append("g").attr("class", "y axis").attr("transform", "translate(42,0)").call(yAxis)
+          .append("text").attr("transform", "rotate(-90)").attr("y", 45).attr("dy", ".71em").style("text-anchor", "end").text(
+            "kg per County");
+      }
+
+      function calLbs(lbsAc) { // calculate lbs per Acre per county
+        var lbs = ((lbsAc[year.value] * 2.2046226218) / lbsAc.aland_ac)
+        // console.log(lbs)
+        // console.log(year.value)
+        return lbs
+>>>>>>> parent of 34ca88d... bind csv file to county data
       }
     </script>
   </body>
