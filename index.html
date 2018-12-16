@@ -181,8 +181,6 @@
     // synchronous calls to data files
     var statesJson = d3.json("data/us-states.json"),
       countyJson = d3.json("data/us.json");
-
-
     // add chemical Data csv
     var Atrazine = d3.csv("data/atrazine.csv"),
       Dicamba = d3.csv("data/dicamba.csv"),
@@ -191,7 +189,8 @@
       Paraquat = d3.csv("data/paraquat.csv");
 
     // Set global variable current chemical
-    var currentChemical = "Atrazine"
+    var currentChemical = "Atrazine",
+      chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"];
     // console.log(year.value)
 
     // define color generator
@@ -203,9 +202,6 @@
     var color = d3.scaleQuantize()
       .domain([0, 56054]) // low and high from the dataset
       .range(d3.schemeYlOrRd[9])
-    // console.log("work")
-
-
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(drawMap, error)
@@ -214,37 +210,36 @@
       console.log(error)
     }
 
-    // console.log(year.value + "Outside")
+    var globCountydata = {}
+    console.log(globCountydata + "Outside drawMAp")
     // draw map
-    function drawMap(data) { // drawMap function
-
+    function drawMap(data) { // START drawMap function
       // data is array of our 7 datasets
       var statesData = data[0],
-        countyData = data[1],
-        chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"];
+        countyData = data[1];
 
       // bind csv data to county
       bind(data, chemicals, countyData)
-
-      // console.log(countyData)
-      // console.log(year.value)
-      var color = d3.scaleQuantize()
-        .domain([.1, 56054]) // low and high from the dataset
-        .range(d3.schemeYlOrRd[9])
-
+      var globCountydata = countyData
       // slider for year selection
       var slider = d3.select('#year');
       slider.on('change', function() {
         console.log(year.value + "Slider value");
       });
 
-      addFilter(chemicals) //
+      getColor(countyData)
+
+
+      // slider for year selection
+      // var slider = d3.select('#year');
+      // slider.on('change', function() {
+      //   console.log(year.value + "Slider value");
+
+      addFilter(chemicals, globCountydata) //
 
       // define width and height of our SVG
       var width = 960,
         height = 600
-
-
 
       // select the map element
       var svg = d3.select("#map")
@@ -343,10 +338,10 @@
         })
       // console.log(pestData)
 
-      addLegend(minimum, maximum, minimumColor, maximumColor, color)
+      // addLegend(minimum, maximum, minimumColor, maximumColor, color)
     }
 
-    function addFilter(chemicals, countyData) { // START addFilter function
+    function addFilter(chemicals, countyData, globCountydata) { // START addFilter function
       // select the map element
       var dropdown = d3.select('#map')
         .append('select') // append a new select element
@@ -364,39 +359,43 @@
           return d // use the time as value attribute
         })
 
-      function onchange() { // START onChange
+      function onchange(globCountydata) { // START onChange
         // get the current value from the select element
         var val = d3.select('select').property('value')
         var currentChemical = val
         console.log(currentChemical + "inside onchange")
+        redrawMap(globCountydata, currentChemical)
         // console.log(countyData.objects.cb_2017_us_county_500k)
         // console.log(year.value)
         return val
       } //END onChange
     } // END addFilter function
 
-    function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
-      var w = 140,
-        h = 600;
-
-      var key = d3.select("body").append("svg").attr("id", "key").attr("width", w).attr("height", h);
-
-      var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
-
-      legend.append("stop").attr("offset", "0%").attr("stop-color", maximumColor).attr("stop-opacity", 1);
-
-      legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
-
-      key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,65)");
-
-      var y = d3.scaleLinear().range([565, 65]).domain([minimum, maximum]);
-
-      var yAxis = d3.axisRight(y);
-
-      key.append("g").attr("class", "y axis").attr("transform", "translate(42,0)").call(yAxis)
-        .append("text").attr("transform", "rotate(-90)").attr("y", 45).attr("dy", ".71em").style("text-anchor", "end").text(
-          "kg per County");
-    } //END addLEgend function
+    function redrawMap() { //START redrawMap
+      console.log(globCountydata)
+    } //END redrawMap
+    // function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
+    //   var w = 140,
+    //     h = 600;
+    //
+    //   var key = d3.select("body").append("svg").attr("id", "key").attr("width", w).attr("height", h);
+    //
+    //   var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+    //
+    //   legend.append("stop").attr("offset", "0%").attr("stop-color", maximumColor).attr("stop-opacity", 1);
+    //
+    //   legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
+    //
+    //   key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,65)");
+    //
+    //   var y = d3.scaleLinear().range([565, 65]).domain([minimum, maximum]);
+    //
+    //   var yAxis = d3.axisRight(y);
+    //
+    //   key.append("g").attr("class", "y axis").attr("transform", "translate(42,0)").call(yAxis)
+    //     .append("text").attr("transform", "rotate(-90)").attr("y", 45).attr("dy", ".71em").style("text-anchor", "end").text(
+    //       "kg per County");
+    // } //END addLEgend function
 
     // calculate lbs per Acre per county
     function calLbs(lbsAc) { // START calLbs function
@@ -422,7 +421,20 @@
           })
         });
       }
+
     } // END bind function
+
+    function getColor(countyData) { // START getColor
+      // for (i=0; i<countyData.length; i++){
+      //
+      // }
+      console.log(countyData.objects.cb_2017_us_county_500k)
+      // Color Scale
+      var color = d3.scaleQuantize()
+        .domain([0, 65000]) // low and high from the dataset
+        .range(d3.schemeYlOrRd[9])
+      return color
+    } //END getColor
   </script>
 </body>
 
