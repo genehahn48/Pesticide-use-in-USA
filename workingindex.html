@@ -351,7 +351,7 @@
       var dropdown = d3.select('#map')
         .append('select') // append a new select element
         .attr('class', 'filter') // add a class name
-        .on('change', onchange()) // listen for change
+        .on('change', onchange) // listen for change
 
       // select all the options (that don't exist yet)
       dropdown.selectAll('option')
