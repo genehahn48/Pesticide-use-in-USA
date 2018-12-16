@@ -15,3 +15,13 @@ Darren Jaworski’s Block 5874214
 Updated December 18, 2015
 Tutorial II
 http://bl.ocks.org/darrenjaworski/5874214
+
+Jane Pong’s Block 11b54880abcb6b844637cb1d7a120cd5
+Updated June 24, 2017
+Heatmap with data update
+https://bl.ocks.org/officeofjane/11b54880abcb6b844637cb1d7a120cd5
+
+Phuoc Do’s Block b48388ee8bc5582947b6
+Updated August 29, 2015
+US States Map with Dropdown Selector
+https://bl.ocks.org/dnprock/b48388ee8bc5582947b6
