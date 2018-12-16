@@ -58,6 +58,11 @@
         stroke: red;
         stroke-width: .6;
       }
+      .states-names{
+        font-family: Montserrat, serif;
+        font-size: 2em;
+        color: green;
+      }
 
       .county {
         stroke: grey;
@@ -185,6 +190,8 @@
       Glyphosate = d3.csv("data/glyphosate.csv"),
       Paraquat = d3.csv("data/paraquat.csv");
 
+    // Set global variable current chemical
+    var currentChemical = "Atrazine"
     // console.log(year.value)
 
     // define color generator
@@ -193,17 +200,20 @@
       maximum = 650000;
     var minimumColor = "#fff5f0",
       maximumColor = "#67000d";
-
     var color = d3.scaleQuantize()
       .domain([0, 56054]) // low and high from the dataset
       .range(d3.schemeYlOrRd[9])
     // console.log("work")
+
+
+
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(drawMap, error)
     // function fired if there is an error
     function error(error) {
       console.log(error)
     }
+
     // console.log(year.value + "Outside")
     // draw map
     function drawMap(data) { // drawMap function
@@ -215,17 +225,20 @@
 
       // bind csv data to county
       bind(data, chemicals, countyData)
-      // slider for year selection
-      var slider = d3.select('#year');
-      slider.on('change', function() {
-        console.log(year.value + "Slider value");
-      });
+
       // console.log(countyData)
       // console.log(year.value)
       var color = d3.scaleQuantize()
         .domain([.1, 56054]) // low and high from the dataset
         .range(d3.schemeYlOrRd[9])
 
+      // slider for year selection
+      var slider = d3.select('#year');
+      slider.on('change', function() {
+        console.log(year.value + "Slider value");
+      });
+
+      addFilter(chemicals) //
 
       // define width and height of our SVG
       var width = 960,
@@ -260,6 +273,7 @@
       var path = d3.geoPath()
         .projection(projection)
 
+      // console.log(currentChemical)
 
       // console.log(year.value)
       // create and append a new SVG g element to the SVG
@@ -271,18 +285,18 @@
         .attr("d", path) // give each path a d attribute value
         .attr("class", "county") // give each path a class of sate
         .attr('fill', function(d) {
-          if (d.properties.Atrazine) {
-            // console.log(d.properties.pestData[year.value])
-            return color(+d.properties.Atrazine[year.value]);
+          if (d.properties[currentChemical]) {
+            // console.log(d.properties[currentChemical][year.value])
+            return color(+d.properties[currentChemical][year.value]);
           }
         })
 
         .on("mouseover", function(d) { // when mousing over an element
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
           tooltip.style("opacity", 1).html(d.properties.Atrazine.co_name + ", " + d.properties.Atrazine.st_name +
-            "<br>" + d.properties.Atrazine[year.value] + " kg") // make tooltip visible and update info
+            "<br>" + chemValue(d.properties[currentChemical]) + "  kg " + currentChemical + "<br> Yr: " + year.value) // make tooltip visible and update info
         })
-
+        // + calLbs(d.properties.currentChemical
         .on("mouseout", function() { // when mousing out of an element
           d3.select(this).classed("hover", false) // remove the class
           tooltip.style("opacity", 0) // hide the element
@@ -295,25 +309,26 @@
         .append("path") // append new path elements for each data feature
         .attr("d", path) // give each path a d attribute value
         .attr("class", "state") // give each path a class of sate
+      // .attr("class", "states-names")  // try to add State Abbr to path
+      // .selectAll("text")
+      // .data(geojsonState.features)
+      // .enter()
+      // .append("svg:text")
       // .text(function(d) {
       //   return d.properties.STUSPS;
       // })
-      // console.log(d)
-      // .attr("x", function(d) {
+      // .attr("cx", function(d) {
       //   return path.centroid(d)[0];
       // })
-      // .attr("y", function(d) {
+      // .attr("cy", function(d) {
       //   return path.centroid(d)[1];
       // })
       // .attr("text-anchor", "middle")
-      // .attr('font-size', '20pt');
+      // .attr('fill', 'white');
 
       // Create  div for the tooltip and hide with opacity
       var tooltip = d3.select("path").append("div")
         .attr("class", "tooltip")
-
-      // add polygon to map pestCSV --can stack layers with order in code
-
 
       // Create  div for the tooltip and hide with opacity
       var tooltip = d3.select("body").append("div")
@@ -327,11 +342,11 @@
             .style("top", (d3.event.pageY - 30) + "px");
         })
       // console.log(pestData)
-      addFilter(chemicals)
+
       addLegend(minimum, maximum, minimumColor, maximumColor, color)
     }
 
-    function addFilter(chemicals) { // START addFilter function
+    function addFilter(chemicals, countyData) { // START addFilter function
       // select the map element
       var dropdown = d3.select('#map')
         .append('select') // append a new select element
@@ -352,14 +367,13 @@
       function onchange() { // START onChange
         // get the current value from the select element
         var val = d3.select('select').property('value')
-        console.log(val)
+        var currentChemical = val
+        console.log(currentChemical + "inside onchange")
+        // console.log(countyData.objects.cb_2017_us_county_500k)
         // console.log(year.value)
         return val
       } //END onChange
-
     } // END addFilter function
-
-
 
     function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
       var w = 140,
@@ -386,9 +400,16 @@
 
     // calculate lbs per Acre per county
     function calLbs(lbsAc) { // START calLbs function
+      // console.log(lbsAc + "lbs acre calculatioin" + currentChemical)
       var lbs = ((lbsAc[year.value] * 2.2046226218) / lbsAc.aland_ac)
       return lbs
-    } //END calLbs function+
+    } //END calLbs function
+
+    function chemValue(text) { // START chemValue
+      // console.log(text[year.value])
+      var chemText = text[year.value]
+      return chemText
+    } // END chemValue
 
     function bind(data, chemicals, countyData) { // START bind function
       for (i = 0; i < chemicals.length; i++) {
