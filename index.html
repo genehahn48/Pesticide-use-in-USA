@@ -196,12 +196,14 @@
     // define color generator
     // legend min max range color
     var minimum = 0,
-      maximum = 650000;
+        maximum = 650000;
+    
     var minimumColor = "#fff5f0",
-      maximumColor = "#67000d";
+        maximumColor = "#67000d";
+    
     var color = d3.scaleQuantize()
-      .domain([0, 56054]) // low and high from the dataset
-      .range(d3.schemeYlOrRd[9])
+         .domain([0, 56054]) // low and high from the dataset
+         .range(d3.schemeYlOrRd[9])
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(drawMap, error)
@@ -226,14 +228,6 @@
       slider.on('change', function() {
         console.log(year.value + "Slider value");
       });
-
-      getColor(countyData)
-
-
-      // slider for year selection
-      // var slider = d3.select('#year');
-      // slider.on('change', function() {
-      //   console.log(year.value + "Slider value");
 
       addFilter(chemicals, globCountydata) //
 
@@ -364,7 +358,16 @@
         var val = d3.select('select').property('value')
         var currentChemical = val
         console.log(currentChemical + "inside onchange")
-        redrawMap(globCountydata, currentChemical)
+
+        d3.selectAll('.county')
+          .attr('fill', function(d) {
+            if (d.properties[currentChemical]) {
+              // console.log(d.properties[currentChemical][year.value])
+              return color(+d.properties[currentChemical][year.value]);
+            }
+          })
+
+        //redrawMap(globCountydata, currentChemical)
         // console.log(countyData.objects.cb_2017_us_county_500k)
         // console.log(year.value)
         return val
@@ -422,19 +425,7 @@
         });
       }
 
-    } // END bind function
-
-    function getColor(countyData) { // START getColor
-      // for (i=0; i<countyData.length; i++){
-      //
-      // }
-      console.log(countyData.objects.cb_2017_us_county_500k)
-      // Color Scale
-      var color = d3.scaleQuantize()
-        .domain([0, 65000]) // low and high from the dataset
-        .range(d3.schemeYlOrRd[9])
-      return color
-    } //END getColor
+    } // end
   </script>
 </body>
 
