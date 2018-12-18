@@ -368,8 +368,8 @@
 
       dropdown.on('change', function () { // START onChange
         // get the current value from the select element
-        var currentChemical = d3.select('select').property('value');
-
+        currentChemical = d3.select('select').property('value');
+        console.log(currentChemical, currentYear)
         // use our already selected counties and update the fill
         counties
           .attr('fill', function(d) {
@@ -383,10 +383,12 @@
     function addSlider() {
       // slider for year selection
       d3.select('#year').on('input', function() {
+        currentYear = d3.select('#year').property('value');
+        console.log(currentChemical, currentYear)
         counties
           .attr('fill', function(d) {
             if (d.properties[currentChemical]) {
-              return color(+d.properties[currentChemical][year.value]);
+              return color(+d.properties[currentChemical][currentYear]);
             }
 
           })
