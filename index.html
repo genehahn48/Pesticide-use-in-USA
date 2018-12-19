@@ -176,7 +176,6 @@
 
 
   <script>
-
     // define width and height of our SVG
     var width = 960,
       height = 600
@@ -189,7 +188,7 @@
 
     // set the initial chem and year
     var currentChemical = "Atrazine",
-        currentYear = 1995;
+      currentYear = 1995;
 
     // make our counties var global
     var counties;
@@ -208,31 +207,31 @@
     // define color generator
     // legend min max range color
     var minimum = 0,
-        maximum = 650000;
-    
+      maximum = 650000;
+
     var minimumColor = "#fff5f0",
-        maximumColor = "#67000d";
-    
+      maximumColor = "#67000d";
+
     var color = d3.scaleQuantize()
-         .domain([0, 56054]) // low and high from the dataset
-         .range(d3.schemeYlOrRd[9])
+      .domain([0, 56054]) // low and high from the dataset
+      .range(d3.schemeYlOrRd[9])
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(processData, error)
-  
+
     // function fired if there is an error
     function error(error) {
       console.log(error)
     }
 
-    function processData (data) {
+    function processData(data) {
 
       var chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"];
 
       // remove first items of data and assign to vars
       var statesData = data.shift(),
-          countyData = data.shift();
-    
+        countyData = data.shift();
+
       // for each county
       countyData.objects.counties.geometries.forEach(function(county) {
         // for each chemical
@@ -313,7 +312,7 @@
         .append("path") // append new path elements for each data feature
         .attr("d", path) // give each path a d attribute value
         .attr("class", "state") // give each path a class of sate
-      // .attr("class", "states-names")  // try to add State Abbr to path
+      // .attr("class", "states-names") // try to add State Abbr to path
       // .selectAll("text")
       // .data(geojsonState.features)
       // .enter()
@@ -321,11 +320,11 @@
       // .text(function(d) {
       //   return d.properties.STUSPS;
       // })
-      // .attr("cx", function(d) {
-      //   return path.centroid(d)[0];
+      // .attr("x", function(d) {
+      //   return -path.centroid(d)[0];
       // })
-      // .attr("cy", function(d) {
-      //   return path.centroid(d)[1];
+      // .attr("y", function(d) {
+      //   return -path.centroid(d)[1];
       // })
       // .attr("text-anchor", "middle")
       // .attr('fill', 'white');
@@ -341,7 +340,7 @@
           tooltip.style("left", (d3.event.pageX + 10) + "px")
             .style("top", (d3.event.pageY - 30) + "px");
         })
-      
+
       // add UI elements
       addFilter(chemicals);
       addSlider();
@@ -366,7 +365,7 @@
           return d // use the time as value attribute
         })
 
-      dropdown.on('change', function () { // START onChange
+      dropdown.on('change', function() { // START onChange
         // get the current value from the select element
         currentChemical = d3.select('select').property('value');
         console.log(currentChemical, currentYear)
@@ -396,7 +395,7 @@
 
     }
 
-   
+
     // function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
     //   var w = 140,
     //     h = 600;
@@ -432,7 +431,6 @@
       var chemText = text[year.value]
       return chemText
     } // END chemValue
-
   </script>
 </body>
 
