@@ -11,7 +11,7 @@
     body {
         padding: 0;
         margin: 0;
-        background: skyblue;
+        background: #00b1ff;
         font-family: Montserrat, serif;
       }
 
@@ -55,8 +55,8 @@
 
       .state {
         fill: none;
-        stroke: red;
-        stroke-width: .6;
+        stroke: #00b1ff;
+        stroke-width: 1.6;
       }
       .states-names{
         font-family: Montserrat, serif;
@@ -176,11 +176,28 @@
 
 
   <script>
-    // JS code here
+
+    // define width and height of our SVG
+    var width = 960,
+      height = 600
+
+    // select the map element
+    var svg = d3.select("#map")
+      .append("svg") // append a new SVG element
+      .attr("width", width) // give the SVS element a width attribute and value
+      .attr("height", height) // same for the height
+
+    // set the initial chem and year
+    var currentChemical = "Atrazine",
+        currentYear = 1995;
+
+    // make our counties var global
+    var counties;
+
     // request the JSON text file, then call drawMap function
     // synchronous calls to data files
     var statesJson = d3.json("data/us-states.json"),
-      countyJson = d3.json("data/us.json");
+      countyJson = d3.json("data/us-counties.json");
     // add chemical Data csv
     var Atrazine = d3.csv("data/atrazine.csv"),
       Dicamba = d3.csv("data/dicamba.csv"),
@@ -188,78 +205,75 @@
       Glyphosate = d3.csv("data/glyphosate.csv"),
       Paraquat = d3.csv("data/paraquat.csv");
 
-    // Set global variable current chemical
-    var currentChemical = "Atrazine",
-      chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"];
-    // console.log(year.value)
-
     // define color generator
     // legend min max range color
     var minimum = 0,
-      maximum = 650000;
+        maximum = 650000;
+    
     var minimumColor = "#fff5f0",
-      maximumColor = "#67000d";
+        maximumColor = "#67000d";
+    
     var color = d3.scaleQuantize()
-      .domain([0, 56054]) // low and high from the dataset
-      .range(d3.schemeYlOrRd[9])
+         .domain([0, 56054]) // low and high from the dataset
+         .range(d3.schemeYlOrRd[9])
 
     // use promise to call all data files, then send data to callback
-    Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(drawMap, error)
+    Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(processData, error)
+  
     // function fired if there is an error
     function error(error) {
       console.log(error)
     }
 
-    var globCountydata = {}
-    console.log(globCountydata + "Outside drawMAp")
-    // draw map
-    function drawMap(data) { // START drawMap function
-      // data is array of our 7 datasets
-      var statesData = data[0],
-        countyData = data[1];
+    function processData (data) {
 
-      // bind csv data to county
-      bind(data, chemicals, countyData)
-      var globCountydata = countyData
-      // slider for year selection
-      var slider = d3.select('#year');
-      slider.on('change', function() {
-        console.log(year.value + "Slider value");
+      var chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"];
+
+      // remove first items of data and assign to vars
+      var statesData = data.shift(),
+          countyData = data.shift();
+    
+      // for each county
+      countyData.objects.counties.geometries.forEach(function(county) {
+        // for each chemical
+        chemicals.forEach(function(chemical, i) {
+          // create a new key for that chemical
+          county.properties[chemical] = {}
+          // for each row in the related dataset
+          data[i].forEach(function(row) {
+            if (county.properties.GEOID == row.geoid) {
+              // create a new key for that chemical
+              county.properties[chemical] = row
+            }
+          })
+        })
       });
 
-      getColor(countyData)
+      // now we're storing all our data in the countyData object
+      // and can access chemicals via the name of the chemical as a key
+      console.log(countyData)
 
+      // initally draw the map
+      drawMap(countyData, statesData, chemicals);
 
-      // slider for year selection
-      // var slider = d3.select('#year');
-      // slider.on('change', function() {
-      //   console.log(year.value + "Slider value");
+    }
 
-      addFilter(chemicals, globCountydata) //
+    // draw map
+    function drawMap(countyData, statesData, chemicals) { // START drawMap function
 
-      // define width and height of our SVG
-      var width = 960,
-        height = 600
-
-      // select the map element
-      var svg = d3.select("#map")
-        .append("svg") // append a new SVG element
-        .attr("width", width) // give the SVS element a width attribute and value
-        .attr("height", height) // same for the height
-      // console.log(countyData)
-      // get the GeoJSON representation of the TopoJSON data
+      // convert topo to JSON
       var geojsonState = topojson.feature(statesData, {
         type: "GeometryCollection",
-        geometries: statesData.objects.cb_2017_us_state_500k.geometries
+        geometries: statesData.objects.states.geometries
       })
+
+      // topo to JSON
       var geojsonCounty = topojson.feature(countyData, {
         type: "GeometryCollection",
-        geometries: countyData.objects.cb_2017_us_county_500k.geometries
+        geometries: countyData.objects.counties.geometries
       })
-      // define a projection using the US Albers USA
-      // fit the extent of the GeoJSON data to specified
-      // width and height
-      // Alberts projection
+
+      // define projection and use extent of states
       var projection = d3.geoAlbersUsa()
         .fitSize([width, height], geojsonState)
 
@@ -268,11 +282,8 @@
       var path = d3.geoPath()
         .projection(projection)
 
-      // console.log(currentChemical)
-
-      // console.log(year.value)
       // create and append a new SVG g element to the SVG
-      var countyBrdy = svg.append("g")
+      counties = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
         .data(geojsonCounty.features) // use the GeoJSON data
         .enter() // enter the selection
@@ -281,11 +292,9 @@
         .attr("class", "county") // give each path a class of sate
         .attr('fill', function(d) {
           if (d.properties[currentChemical]) {
-            // console.log(d.properties[currentChemical][year.value])
             return color(+d.properties[currentChemical][year.value]);
           }
         })
-
         .on("mouseover", function(d) { // when mousing over an element
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
           tooltip.style("opacity", 1).html(d.properties.Atrazine.co_name + ", " + d.properties.Atrazine.st_name +
@@ -297,7 +306,7 @@
           tooltip.style("opacity", 0) // hide the element
         })
 
-      var stateBrdy = svg.append("g")
+      var states = svg.append("g")
         .selectAll("path") // select all the paths (that don't exist yet)
         .data(geojsonState.features) // use the GeoJSON data
         .enter() // enter the selection
@@ -322,11 +331,7 @@
       // .attr('fill', 'white');
 
       // Create  div for the tooltip and hide with opacity
-      var tooltip = d3.select("path").append("div")
-        .attr("class", "tooltip")
-
-      // Create  div for the tooltip and hide with opacity
-      var tooltip = d3.select("body").append("div")
+      var tooltip = d3.select("#map").append("div")
         .attr("class", "tooltip")
 
       // select the map element
@@ -336,17 +341,19 @@
           tooltip.style("left", (d3.event.pageX + 10) + "px")
             .style("top", (d3.event.pageY - 30) + "px");
         })
-      // console.log(pestData)
+      
+      // add UI elements
+      addFilter(chemicals);
+      addSlider();
 
       // addLegend(minimum, maximum, minimumColor, maximumColor, color)
     }
 
-    function addFilter(chemicals, countyData, globCountydata) { // START addFilter function
+    function addFilter(chemicals) { // START addFilter function
       // select the map element
       var dropdown = d3.select('#map')
         .append('select') // append a new select element
         .attr('class', 'filter') // add a class name
-        .on('change', onchange) // listen for change
 
       // select all the options (that don't exist yet)
       dropdown.selectAll('option')
@@ -359,21 +366,37 @@
           return d // use the time as value attribute
         })
 
-      function onchange(globCountydata) { // START onChange
+      dropdown.on('change', function () { // START onChange
         // get the current value from the select element
-        var val = d3.select('select').property('value')
-        var currentChemical = val
-        console.log(currentChemical + "inside onchange")
-        redrawMap(globCountydata, currentChemical)
-        // console.log(countyData.objects.cb_2017_us_county_500k)
-        // console.log(year.value)
-        return val
-      } //END onChange
-    } // END addFilter function
+        currentChemical = d3.select('select').property('value');
+        console.log(currentChemical, currentYear)
+        // use our already selected counties and update the fill
+        counties
+          .attr('fill', function(d) {
+            if (d.properties[currentChemical]) {
+              return color(+d.properties[currentChemical][year.value]);
+            }
+          })
+      }) // end on change
+    } // end addFilter
 
-    function redrawMap() { //START redrawMap
-      console.log(globCountydata)
-    } //END redrawMap
+    function addSlider() {
+      // slider for year selection
+      d3.select('#year').on('input', function() {
+        currentYear = d3.select('#year').property('value');
+        console.log(currentChemical, currentYear)
+        counties
+          .attr('fill', function(d) {
+            if (d.properties[currentChemical]) {
+              return color(+d.properties[currentChemical][currentYear]);
+            }
+
+          })
+      });
+
+    }
+
+   
     // function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
     //   var w = 140,
     //     h = 600;
@@ -410,31 +433,6 @@
       return chemText
     } // END chemValue
 
-    function bind(data, chemicals, countyData) { // START bind function
-      for (i = 0; i < chemicals.length; i++) {
-        countyData.objects.cb_2017_us_county_500k.geometries.forEach(function(county) {
-          data[i + 2].forEach(function(each) {
-            if (county.properties.GEOID == each.geoid) {
-              county.properties[chemicals[i]] = each
-              return
-            }
-          })
-        });
-      }
-
-    } // END bind function
-
-    function getColor(countyData) { // START getColor
-      // for (i=0; i<countyData.length; i++){
-      //
-      // }
-      console.log(countyData.objects.cb_2017_us_county_500k)
-      // Color Scale
-      var color = d3.scaleQuantize()
-        .domain([0, 65000]) // low and high from the dataset
-        .range(d3.schemeYlOrRd[9])
-      return color
-    } //END getColor
   </script>
 </body>
 
