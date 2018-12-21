@@ -171,7 +171,6 @@
   <script src="https://d3js.org/d3-color.v1.min.js"></script>
   <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/1.1.0/d3-legend.js"></script>
   <!-- load TopoJSON -->
   <script src="https://unpkg.com/topojson@3"></script>
 
@@ -206,23 +205,16 @@
       Paraquat = d3.csv("data/paraquat.csv");
 
     // define color generator
-    // legend color
-    var colorbrewer = {
-      YlOrRd: {
-        9: ["#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#bd0026", "#800026"]
-      }
-    };
+    // legend min max range color
+    var minimum = 0,
+      maximum = 650000;
+
+    var minimumColor = "#fff5f0",
+      maximumColor = "#67000d";
+
     var color = d3.scaleQuantize()
       .domain([0, 56054]) // low and high from the dataset
-      .range(colorbrewer.YlOrRd[9])
-
-    var colorLegend = d3.legend.color()
-      .labelFormat(d3.format(".0f"))
-      .scale(color)
-      .shapePadding(0)
-      .shapeWidth(50)
-      .shapeHeight(45)
-      .labelOffset(12);
+      .range(d3.schemeYlOrRd[9])
 
     // use promise to call all data files, then send data to callback
     Promise.all([statesJson, countyJson, Atrazine, Dicamba, Fomesafen, Glyphosate, Paraquat]).then(processData, error)
@@ -357,7 +349,8 @@
       // add UI elements
       addFilter(chemicals);
       addSlider();
-      addLegend(color, colorLegend)
+      addLegend(minimum, maximum, minimumColor, maximumColor, color)
+      // addLegend(minimum, maximum, minimumColor, maximumColor, color)
     }
 
     function addFilter(chemicals) { // START addFilter function
@@ -404,13 +397,61 @@
 
           })
       });
+
     }
 
 
-    function addLegend(color, colorLegend) { //START addLegend function
-      svg.append("g")
-        .attr("transform", "translate(50, 50)")
-        .call(colorLegend);
+    function addLegend(minimum, maximum, minimumColor, maximumColor, color) { //START addLegend function
+      var w = 140,
+        h = 600;
+
+      var key = d3.select("body")
+        .append("svg")
+        .attr("id", "key")
+        .attr("width", w)
+        .attr("height", h);
+
+      var legend = key.append("defs")
+        .append("svg:linearGradient")
+        .attr("id", "gradient")
+        .attr("x1", "100%")
+        .attr("y1", "0%")
+        .attr("x2", "100%")
+        .attr("y2", "100%")
+        .attr("spreadMethod", "pad");
+
+      legend.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", d3.schemeYlOrRd[9])
+        .attr("stop-opacity", 1);
+
+      legend.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", d3.schemeYlOrRd[1])
+        .attr("stop-opacity", 1);
+
+      key.append("rect")
+        .attr("width", w - 100)
+        .attr("height", h - 100)
+        .style("fill", "url(#gradient)")
+        .attr("transform", "translate(0,65)");
+
+      var y = d3.scaleLinear()
+        .range([565, 65])
+        .domain([minimum, maximum]);
+
+      var yAxis = d3.axisRight(y);
+
+      key.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(42,0)")
+        .call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 45)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("kg per County");
     } //END addLEgend function
 
     // calculate lbs per Acre per county
