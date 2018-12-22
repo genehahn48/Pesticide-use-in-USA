@@ -191,7 +191,7 @@
         9: ["#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#bd0026", "#800026"]
       }
     };
-    var colorD = [300, 65000]
+    var colorD = [0, 2]
     // Color legend.
     var color = d3.scaleQuantize()
       .domain(colorD)
@@ -215,9 +215,7 @@
 
 
     function processData(data) {
-
       var chemicals = ["Atrazine", "Dicamba", "Fomesafen", "Glyphosate", "Paraquat"];
-
       // remove first items of data and assign to vars
       var statesData = data.shift(),
         countyData = data.shift();
@@ -240,8 +238,10 @@
 
       // now we're storing all our data in the countyData object
       // and can access chemicals via the name of the chemical as a key
-      console.log(countyData)
 
+      // console.log(Object.keys(countyData))
+      // console.log(countyData.objects.counties.geometries[2345])
+      // getDcolor(countyData)
       // initally draw the map
       drawMap(countyData, statesData, chemicals);
     }
@@ -280,13 +280,15 @@
         .attr("class", "county") // give each path a class of sate
         .attr('fill', function(d) {
           if (d.properties[currentChemical]) {
-            return color(+d.properties[currentChemical][year.value]);
+            getDcolor(d)
+            return color(+calLbs(d.properties[currentChemical], d.properties.Atrazine.farmLandAc));
           }
         })
         .on("mouseover", function(d) { // when mousing over an element
           d3.select(this).classed("hover", true).raise(); // select it, add a class name, and bring to front
           tooltip.style("opacity", 1).html(d.properties.Atrazine.co_name + ", " + d.properties.Atrazine.st_name +
-            "<br>" + chemValue(d.properties[currentChemical]) + "  kg " + currentChemical + "<br> Yr: " + year.value) // make tooltip visible and update info
+            "<br>" + calLbs(chemValue(d.properties[currentChemical]), d.properties.Atrazine.farmLandAc) +
+            "  lbs/Ac of Farmland <br> chemical: " + currentChemical + "<br> Yr: " + year.value) // make tooltip visible and update info
         })
         // + calLbs(d.properties.currentChemical
         .on("mouseout", function() { // when mousing out of an element
@@ -367,7 +369,8 @@
         counties
           .attr('fill', function(d) {
             if (d.properties[currentChemical]) {
-              return color(+d.properties[currentChemical][year.value]);
+              console.log(+calLbs(d.properties[currentChemical], d.properties.Atrazine.farmLandAc))
+              return color(+calLbs(d.properties[currentChemical], d.properties.Atrazine.farmLandAc));
             }
           })
       }) // end on change
@@ -397,10 +400,14 @@
     } //END addLEgend function
 
     // calculate lbs per Acre per county
-    function calLbs(lbsAc) { // START calLbs function
-      // console.log(lbsAc + "lbs acre calculatioin" + currentChemical)
-      var lbs = ((lbsAc[year.value] * 2.2046226218) / lbsAc.aland_ac)
-      return lbs
+    function calLbs(lbsAc, farmLand) { // START calLbs function
+      if (farmLand != "0") {
+        var lbs = ((lbsAc * 2.2046226218) / farmLand)
+        // console.log(lbs)
+        return lbs
+      } else {
+        return 0
+      }
     } //END calLbs function
 
     function chemValue(text) { // START chemValue
@@ -408,6 +415,35 @@
       var chemText = text[year.value]
       return chemText
     } // END chemValue
+
+    function getDcolor(d) { // START getDcolor
+      var farmLand = [Number(d.properties.Atrazine.farmLandAc)],
+        chemVal = [Number(d.properties[currentChemical][currentYear])],
+        lbFarmland = [Number(((chemVal * 2.20462) / farmLand))],
+        currentLbs = [];
+      currentLbs.push(lbFarmland)
+
+
+
+      var min = Math.min.apply(Math, currentLbs),
+        max = Math.max.apply(Math, currentLbs);
+      console.log(min)
+      console.log(max)
+      // currentData = []
+      // d.objects.counties.geometries.forEach(function(data) {
+      //   if (data.properties[currentChemical][year.value] == undefined) {
+      //     console.log("undefined")
+      //   } else {
+      //     currentData.push(Number(data.properties[currentChemical][year.value]))
+      //   }
+      // })
+      //
+      // var min = Math.min.apply(Math, currentData),
+      //   max = Math.max.apply(Math, currentData);
+      // console.log(colorD)
+      // console.log(min)
+      // console.log(max)
+    }
   </script>
 </body>
 
